@@ -1,0 +1,27 @@
+{
+	"name": "crosscall",
+	"version": "0.0.0-dev.0",
+	"description": "cross-domain iframe postmessage rpc",
+	"main": "dist/host",
+	"scripts": {
+		"prepare": "rimraf dist && tsc && npm test -s",
+		"test": "jest --verbose"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/chase-moskal/crosscall.git"
+	},
+	"keywords": [],
+	"author": "Chase Moskal <chasemoskal@gmail.com>",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/chase-moskal/crosscall/issues"
+	},
+	"homepage": "https://github.com/chase-moskal/crosscall#readme",
+	"devDependencies": {
+		"@types/jest": "22.2.3",
+		"jest": "22.4.3",
+		"rimraf": "2.6.2",
+		"typescript": "2.8.3"
+	}
+}
