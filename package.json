@@ -1,8 +1,8 @@
 {
 	"name": "crosscall",
-	"version": "0.0.0-dev.0",
+	"version": "0.0.0-dev.1",
 	"description": "cross-domain iframe postmessage rpc",
-	"main": "dist/host",
+	"main": "dist",
 	"scripts": {
 		"prepare": "rimraf dist && tsc && npm test -s",
 		"test": "jest --verbose"
@@ -11,7 +11,13 @@
 		"type": "git",
 		"url": "git+https://github.com/chase-moskal/crosscall.git"
 	},
-	"keywords": [],
+	"keywords": [
+		"cross-domain",
+		"xdomain",
+		"iframe",
+		"postmessage",
+		"rpc"
+	],
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
 	"bugs": {
