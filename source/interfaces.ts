@@ -5,8 +5,14 @@ export interface Callee {
 	[method: string]: (...args: any[]) => Promise<any>
 }
 
+export interface MessageParams<gMessage extends Message = Message> {
+	message: gMessage
+	origin: string
+}
+
 export const enum Signal {
-	Awaken,
+	Error,
+	Wakeup,
 	Handshake,
 	Call
 }
@@ -37,13 +43,15 @@ export interface CallRequest extends Message {
 	params: any[]
 }
 
-export interface Available {
-	[method: string]: string[]
+export interface Allowed {
+
+	/** array of method names */
+	[topicName: string]: string[]
 }
 
 export interface HandshakeResponse extends Message, Response {
 	signal: Signal.Handshake
-	available: Available
+	allowed: Allowed
 }
 
 export interface CallResponse extends Message, Response {
@@ -51,16 +59,21 @@ export interface CallResponse extends Message, Response {
 	result: any
 }
 
-export interface Expose {
-	[topic: string]: {
-		callee: Callee
-		origin: RegExp
-		methods: string[]
-	}
+export interface Permission {
+	origin: RegExp
+	allowed: Allowed
 }
 
-export interface HostOptions {
-	expose: Expose
+export interface Shims {
+	postMessage: typeof window.parent.postMessage
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+}
+
+export interface HostOptions<gCallee extends Callee = Callee> {
+	callee: gCallee
+	permissions: Permission[]
+	shims?: Partial<Shims>
 }
 
 export interface ClientOptions {

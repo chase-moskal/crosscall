@@ -4,129 +4,126 @@ import {
 	Callee,
 	Signal,
 	Message,
+	MessageParams,
 	ErrorMessage,
 	CallRequest,
 	CallResponse,
 	HandshakeRequest,
 	HandshakeResponse,
-	Expose,
-	Available,
+	Permission,
+	Allowed,
+	Shims,
 	HostOptions
 } from "./interfaces"
 
-/**
- * CROSSCALL HOST
- */
 export default class Host<gCallee extends Callee = Callee> {
-	private readonly expose: Expose
+	private readonly callee: gCallee
+	private readonly permissions: Permission[]
+	private readonly shims: Shims
 	private messageId = 0
 
-	/**
-	 * CROSSCALL CONSTRUCTOR
-	 *  - establish message listener
-	 */
-	constructor({expose}: HostOptions) {
-		this.expose = expose
-		window.addEventListener("message", this.handleMessage, false)
-
-		// send wakeup message to initiate handshake
-		this.sendMessage({signal: Signal.Awaken}, "*")
+	constructor({
+		callee,
+		permissions,
+		shims = {}
+	}: HostOptions<gCallee>) {
+		this.shims = {...defaultShims, ...shims}
+		this.callee = callee
+		this.permissions = permissions
+		this.shims.addEventListener("message", this.handleMessage, false)
+		this.sendMessage({signal: Signal.Wakeup}, "*")
 	}
 
-	/**
-	 * DESTRUCTOR
-	 */
 	destructor() {
 		const {handleMessage} = this
-		window.removeEventListener("message", handleMessage)
+		const {removeEventListener} = this.shims
+		removeEventListener("message", handleMessage)
 	}
 
-	/**
-	 * SEND MESSAGE
-	 */
 	private sendMessage(data: Message, target: string) {
+		const {postMessage} = this.shims
 		const payload = {...data, id: this.messageId++}
-		window.parent.postMessage(payload, target)
+		postMessage(payload, target)
 	}
 
-	/**
-	 * HANDLE MESSAGE
-	 */
-	private readonly handleMessage = async(event: MessageEvent) => {
-		const {expose} = this
-		const messageOrigin = event.origin
-		const {signal} = <Message>event.data
+	private readonly handleMessage = async({origin, data: message}: MessageEvent) => {
+		this.message({origin, message}).catch(error => console.error(error))
+	}
 
-		switch (signal) {
+	async message({message: m, origin}: MessageParams) {
+		switch (m.signal) {
 			case Signal.Handshake: {
-				const message = <HandshakeRequest>event.data
-				this.handleHandshakeMessage(event)
+				const message = <HandshakeRequest>m
+				await this.handleHandshakeMessage({message, origin})
 				break
 			}
 			case Signal.Call: {
-				const message = <CallRequest>event.data
-				this.handleCallMessage(event)
+				const message = <CallRequest>m
+				await this.handleCallMessage({message, origin})
 				break
 			}
 		}
 	}
 
-	/**
-	 * HANDLE HANDSHAKE MESSAGE
-	 */
-	private async handleHandshakeMessage(event: MessageEvent) {
-		const {expose} = this
-		const messageOrigin = event.origin
-		const message = <HandshakeRequest>event.data
-
-		const available: Available = {}
-		Object.keys(expose).forEach(topic => available[topic] = expose[topic].methods)
-		const response = <HandshakeResponse>{
+	private async handleHandshakeMessage({message, origin}: MessageParams<HandshakeRequest>): Promise<void> {
+		const {permissions} = this
+		const {allowed} = getOriginPermission({origin, permissions})
+		const response: HandshakeResponse = {
 			signal: Signal.Handshake,
 			response: message.id,
-			available
+			allowed
 		}
-		this.sendMessage(response, messageOrigin)
+		this.sendMessage(response, origin)
 	}
 
-	/**
-	 * HANDLE CALL MESSAGE
-	 */
-	private async handleCallMessage(event: MessageEvent) {
-		const {expose} = this
-		const messageOrigin = event.origin
-		const message = <CallRequest>event.data
+	private async handleCallMessage({message, origin}: MessageParams<CallRequest>): Promise<void> {
+		const {callee, permissions} = this
 		const {id, signal, topic, method, params} = message
 
 		try {
-
-			// ensure topic is exposed
-			const permission = expose[topic]
-			if (!permission) throw new Error(`${errtag} unknown topic "${topic}" not exposed`)
-
-			// ensure message origin is allowed topic access
-			const {callee, origin: originRegex, methods} = permission
-			const originAllowed = originRegex.test(messageOrigin)
-			if (!originAllowed) throw new Error(`${errtag} origin "${messageOrigin}" not allowed to access "${topic}"`)
-
-			// ensure requested method is allowed
-			const allowed = methods.find(m => m === method)
-			if (!allowed) throw new Error(`${errtag} method "${topic}.${method}" not exposed`)
-
-			// call the method and prepare the response
-			const response = <CallResponse>{
+			const {allowed} = getOriginPermission({origin, permissions})
+			validateMethodPermission({allowed, topic, method, origin})
+			const response: CallResponse = {
 				signal: Signal.Call,
 				response: id,
 				result: await callee[method](...params)
 			}
-
-			// send the response
-			this.sendMessage(response, messageOrigin)
+			this.sendMessage(response, origin)
 		}
 
-		// send back any errors
 		catch (error) {
-			this.sendMessage(<ErrorMessage>{id, error: error.message}, messageOrigin)
+			const errorMessage: ErrorMessage = {
+				signal: Signal.Error,
+				error: error.message,
+				response: id
+			}
+			this.sendMessage(errorMessage, origin)
 		}
 	}
+}
+
+const defaultShims: Shims = {
+	postMessage: window.parent.postMessage.bind(window.parent),
+	addEventListener: window.addEventListener.bind(window),
+	removeEventListener: window.removeEventListener.bind(window)
+}
+
+function getOriginPermission({origin, permissions}: {
+	origin: string
+	permissions: Permission[]
+}): Permission {
+	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
+	if (!permission) throw new Error(`${errtag} no permission for origin "${origin}"`)
+	return permission
+}
+
+function validateMethodPermission({allowed, topic, method, origin}: {
+	allowed: Allowed
+	topic: string
+	method: string
+	origin: string
+}) {
+	const methods = allowed[topic]
+	const granted = methods && methods.find(m => m === method)
+	if (!granted) throw new Error(`${errtag} no permission for method "${topic}.${method}" for origin "${origin}"`)
 }
