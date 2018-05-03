@@ -46,9 +46,25 @@ export default class Client<gCallee extends Callee = Callee> {
 		this.shims.removeEventListener("message", this.handleMessageEvent)
 	}
 
-	async receiveMessage({message, origin}: {message: Message; origin: string}) {
-		
+	async receiveMessage<gMessage extends Message = Message>({message, origin}: {
+		message: gMessage
+		origin: string
+	}): Promise<void> {
+		const {hostOrigin} = this
+
+		if (origin !== this.hostOrigin)
+			throw new Error(`${errtag} message rejected from origin "${origin}"`)
+
+		const handler = this.messageHandlers[message.signal]
+		if (!handler)
+			throw new Error(`${errtag} unknown message signal ${message.signal}`)
+
+		handler(message)
 	}
+
+	private readonly handleMessageEvent = ({
+		origin, data: message
+	}: MessageEvent) => this.receiveMessage({message, origin})
 
 	private preparePostMessage(link: string) {
 		if (this.shims.postMessage) return
@@ -58,17 +74,6 @@ export default class Client<gCallee extends Callee = Callee> {
 		this.shims.postMessage = this.iframe.contentWindow.postMessage.bind(
 			this.iframe.contentWindow
 		)
-	}
-
-	private readonly handleMessageEvent = (event: MessageEvent) => {
-		const {origin, data: message} = event
-		const {hostOrigin} = this
-
-		if (origin !== this.hostOrigin)
-			throw new Error(`${errtag} message from origin not allowed "${origin}"`)
-
-		const handler = this.messageHandlers[message.signal]
-		handler(message)
 	}
 
 	private async request<gResponse extends ResponseMessage = ResponseMessage>(

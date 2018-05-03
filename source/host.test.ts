@@ -1,4 +1,5 @@
 
+import {makeHostOptions} from "./testing"
 import Host from "./host"
 import {
 	Callee,
@@ -12,37 +13,12 @@ import {
 	CallResponse
 } from "./interfaces"
 
-const testTopic = "testTopic"
-const test1 = "test1"
-const test2 = "test2"
-
-const makeTestOptions = () => ({
-	callee: {
-		[testTopic]: {
-			async ["test1"](x: number) { return x },
-			async ["test2"](x: number) { return x + 1 }
-		}
-	},
-	permissions: [{
-		origin: /^https:\/\/alpha.egg$/i,
-		allowed: {
-			testTopic: [test1, test2]
-		}
-	}],
-	shims: {
-		postMessage: jest.fn(),
-		addEventListener: jest.fn(),
-		removeEventListener: jest.fn()
-	}
-})
-
 const goodOrigin = "https://alpha.egg"
 const badOrigin = "https://bravo.egg"
 
 describe("crosscall host", () => {
-
 	it("sends a wakeup mesesage", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const [message, origin] = <[Message, string]>shims.postMessage.mock.calls[0]
 		expect(message.id).toBe(0)
@@ -51,20 +27,20 @@ describe("crosscall host", () => {
 	})
 
 	it("binds message event listener", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		expect(shims.addEventListener.mock.calls.length).toBe(1)
 	})
 
 	it("unbinds message event listener on destructor", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		host.destructor()
 		expect(shims.removeEventListener.mock.calls.length).toBe(1)
 	})
 
 	it("responds to handshake message", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const id = 123
 		const message: HandshakeRequest = {
@@ -79,7 +55,7 @@ describe("crosscall host", () => {
 	})
 
 	it("responds to call messages", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
@@ -87,8 +63,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: testTopic,
-				method: test1,
+				topic: "testTopic",
+				method: "test1",
 				params: [5]
 			},
 			origin
@@ -103,8 +79,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 124,
 				signal: Signal.Call,
-				topic: testTopic,
-				method: test2,
+				topic: "testTopic",
+				method: "test2",
 				params: [5]
 			},
 			origin
@@ -117,7 +93,7 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unauthorized handshake requests", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
@@ -125,8 +101,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: testTopic,
-				method: test1,
+				topic: "testTopic",
+				method: "test1",
 				params: [5]
 			},
 			origin
@@ -134,7 +110,7 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unauthorized call requests", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
@@ -142,8 +118,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: testTopic,
-				method: test1,
+				topic: "testTopic",
+				method: "test1",
 				params: [5]
 			},
 			origin
@@ -151,7 +127,7 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unknown topics and methods", async() => {
-		const {callee, permissions, shims} = makeTestOptions()
+		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
@@ -160,7 +136,7 @@ describe("crosscall host", () => {
 				id: 123,
 				signal: Signal.Call,
 				topic: "000",
-				method: test1,
+				method: "test1",
 				params: [5]
 			},
 			origin
@@ -170,7 +146,7 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: testTopic,
+				topic: "testTopic",
 				method: "000",
 				params: [5]
 			},
