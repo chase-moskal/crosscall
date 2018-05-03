@@ -1,9 +1,7 @@
 
 export const errtag = "crosscall error -"
 
-export interface Callee {
-	[method: string]: (...args: any[]) => Promise<any>
-}
+export type Id = number
 
 export const enum Signal {
 	Error,
@@ -12,15 +10,13 @@ export const enum Signal {
 	Call
 }
 
-export type Id = number
+export interface Response {
+	response: Id
+}
 
 export interface Message {
 	id?: Id
 	signal: Signal
-}
-
-export interface Response {
-	response: Id
 }
 
 export interface ErrorMessage extends Message, Partial<Response> {
@@ -68,6 +64,10 @@ export interface HandleMessageParams<gMessage extends Message = Message> {
 
 export interface MessageHandlers {
 	[key: string]: (params: HandleMessageParams) => Promise<Message & Response>
+}
+
+export interface Callee {
+	[method: string]: (...args: any[]) => Promise<any>
 }
 
 export interface Shims {

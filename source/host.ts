@@ -1,20 +1,20 @@
 
 import {
+	Shims,
 	errtag,
 	Callee,
 	Signal,
+	Allowed,
 	Message,
-	HandleMessageParams,
-	MessageHandlers,
-	ErrorMessage,
+	Permission,
 	CallRequest,
+	HostOptions,
 	CallResponse,
+	ErrorMessage,
+	MessageHandlers,
 	HandshakeRequest,
 	HandshakeResponse,
-	Permission,
-	Allowed,
-	Shims,
-	HostOptions
+	HandleMessageParams
 } from "./interfaces"
 
 export default class Host<gCallee extends Callee = Callee> {
@@ -65,13 +65,15 @@ export default class Host<gCallee extends Callee = Callee> {
 		}
 	}
 
+	private readonly handleMessage = async({
+		origin, data: message
+	}: MessageEvent) => this.message({origin, message})
+
 	private sendMessage(data: Message, target: string) {
 		const {postMessage} = this.shims
 		const payload = {...data, id: this.messageId++}
 		postMessage(payload, target)
 	}
-
-	private readonly handleMessage = async({origin, data: message}: MessageEvent) => this.message({origin, message})
 
 	private readonly messageHandlers: MessageHandlers = {
 		[Signal.Handshake]: async({
@@ -114,7 +116,8 @@ function getOriginPermission({origin, permissions}: {
 	permissions: Permission[]
 }): Permission {
 	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
-	if (!permission) throw new Error(`${errtag} no permission for origin "${origin}"`)
+	if (!permission)
+		throw new Error(`${errtag} no permission for origin "${origin}"`)
 	return permission
 }
 
@@ -126,5 +129,7 @@ function validateMethodPermission({allowed, topic, method, origin}: {
 }) {
 	const methods = allowed[topic]
 	const granted = methods && methods.find(m => m === method)
-	if (!granted) throw new Error(`${errtag} no permission for method "${topic}.${method}" for origin "${origin}"`)
+	if (!granted) throw new Error(
+		`${errtag} no permission for method "${topic}.${method}" for origin` +
+		` "${origin}"`)
 }
