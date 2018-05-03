@@ -65,7 +65,7 @@ export default class Client<gCallee extends Callee = Callee> {
 		const {hostOrigin} = this
 
 		if (origin !== this.hostOrigin)
-			throw new Error(`message from origin not allowed "${origin}"`)
+			throw new Error(`${errtag} message from origin not allowed "${origin}"`)
 
 		const handler = this.messageHandlers[message.signal]
 		handler(message)
@@ -89,7 +89,7 @@ export default class Client<gCallee extends Callee = Callee> {
 	private passResponseToRequest(response: Message & Associated): void {
 		const pending = this.requests.get(response.associate)
 		if (!pending) throw new Error(
-			`unknown response, id "${response.id}" responding to `
+			`${errtag} unknown response, id "${response.id}" responding to `
 			+ `"${response.associate}"`
 		)
 		const {resolve, reject} = pending
