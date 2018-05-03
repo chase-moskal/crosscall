@@ -70,21 +70,31 @@ export interface Callee {
 	[method: string]: (...args: any[]) => Promise<any>
 }
 
-export interface Shims {
+export interface HostShims {
 	postMessage: typeof window.parent.postMessage
 	addEventListener: typeof window.addEventListener
 	removeEventListener: typeof window.removeEventListener
 }
 
+export interface ClientShims {
+	createElement: typeof document.createElement
+	appendChild: typeof document.body.appendChild
+	removeChild: typeof document.body.removeChild
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+	postMessage: typeof window.postMessage
+}
+
 export interface HostOptions<gCallee extends Callee = Callee> {
 	callee: gCallee
 	permissions: Permission[]
-	shims?: Partial<Shims>
+	shims?: Partial<HostShims>
 }
 
 export interface ClientOptions {
 	link: string
 	targetOrigin: string
+	shims?: Partial<ClientShims>
 }
 
 export interface AsyncStorage {

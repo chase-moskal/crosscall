@@ -1,6 +1,6 @@
 
 import {
-	Shims,
+	HostShims,
 	errtag,
 	Callee,
 	Signal,
@@ -20,7 +20,7 @@ import {
 export default class Host<gCallee extends Callee = Callee> {
 	private readonly callee: gCallee
 	private readonly permissions: Permission[]
-	private readonly shims: Shims
+	private readonly shims: HostShims
 	private messageId = 0
 
 	constructor({
@@ -105,7 +105,7 @@ export default class Host<gCallee extends Callee = Callee> {
 	}
 }
 
-const defaultShims: Shims = {
+const defaultShims: HostShims = {
 	postMessage: window.parent.postMessage.bind(window.parent),
 	addEventListener: window.addEventListener.bind(window),
 	removeEventListener: window.removeEventListener.bind(window)

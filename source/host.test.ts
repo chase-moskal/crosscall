@@ -3,7 +3,7 @@ import Host from "./host"
 import {
 	Callee,
 	Permission,
-	Shims,
+	HostShims,
 	Signal,
 	Message,
 	HandshakeRequest,
