@@ -4,7 +4,8 @@ import {
 	Callee,
 	Signal,
 	Message,
-	MessageParams,
+	HandleMessageParams,
+	MessageHandlers,
 	ErrorMessage,
 	CallRequest,
 	CallResponse,
@@ -40,64 +41,64 @@ export default class Host<gCallee extends Callee = Callee> {
 		removeEventListener("message", handleMessage)
 	}
 
+	async message<gMessage extends Message = Message>({message, origin}: {
+		message: gMessage
+		origin: string
+	}) {
+		try {
+			const {permissions} = this
+			const permission = getOriginPermission({origin, permissions})
+
+			const handler = this.messageHandlers[message.signal]
+			const response = await handler({message, origin, permission})
+
+			this.sendMessage(response, origin)
+		}
+		catch (error) {
+			const errorMessage: ErrorMessage = {
+				signal: Signal.Error,
+				error: error.message,
+				response: message.id
+			}
+			this.sendMessage(errorMessage, origin)
+			throw error
+		}
+	}
+
 	private sendMessage(data: Message, target: string) {
 		const {postMessage} = this.shims
 		const payload = {...data, id: this.messageId++}
 		postMessage(payload, target)
 	}
 
-	private readonly handleMessage = async({origin, data: message}: MessageEvent) => {
-		this.message({origin, message}).catch(error => console.error(error))
-	}
+	private readonly handleMessage = async({origin, data: message}: MessageEvent) => this.message({origin, message})
 
-	async message({message: m, origin}: MessageParams) {
-		switch (m.signal) {
-			case Signal.Handshake: {
-				const message = <HandshakeRequest>m
-				await this.handleHandshakeMessage({message, origin})
-				break
+	private readonly messageHandlers: MessageHandlers = {
+		[Signal.Handshake]: async({
+			message, origin, permission
+		}: HandleMessageParams<HandshakeRequest>): Promise<HandshakeResponse> => {
+			const {allowed} = permission
+			return {
+				signal: Signal.Handshake,
+				response: message.id,
+				allowed
 			}
-			case Signal.Call: {
-				const message = <CallRequest>m
-				await this.handleCallMessage({message, origin})
-				break
-			}
-		}
-	}
+		},
 
-	private async handleHandshakeMessage({message, origin}: MessageParams<HandshakeRequest>): Promise<void> {
-		const {permissions} = this
-		const {allowed} = getOriginPermission({origin, permissions})
-		const response: HandshakeResponse = {
-			signal: Signal.Handshake,
-			response: message.id,
-			allowed
-		}
-		this.sendMessage(response, origin)
-	}
+		[Signal.Call]: async({
+			message, origin, permission
+		}: HandleMessageParams<CallRequest>): Promise<CallResponse> => {
+			const {callee} = this
+			const {id, signal, topic, method, params} = message
+			const {allowed} = permission
 
-	private async handleCallMessage({message, origin}: MessageParams<CallRequest>): Promise<void> {
-		const {callee, permissions} = this
-		const {id, signal, topic, method, params} = message
-
-		try {
-			const {allowed} = getOriginPermission({origin, permissions})
 			validateMethodPermission({allowed, topic, method, origin})
-			const response: CallResponse = {
+
+			return {
 				signal: Signal.Call,
 				response: id,
 				result: await callee[method](...params)
 			}
-			this.sendMessage(response, origin)
-		}
-
-		catch (error) {
-			const errorMessage: ErrorMessage = {
-				signal: Signal.Error,
-				error: error.message,
-				response: id
-			}
-			this.sendMessage(errorMessage, origin)
 		}
 	}
 }

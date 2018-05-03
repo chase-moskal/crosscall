@@ -5,11 +5,6 @@ export interface Callee {
 	[method: string]: (...args: any[]) => Promise<any>
 }
 
-export interface MessageParams<gMessage extends Message = Message> {
-	message: gMessage
-	origin: string
-}
-
 export const enum Signal {
 	Error,
 	Wakeup,
@@ -17,7 +12,7 @@ export const enum Signal {
 	Call
 }
 
-export type Id = string
+export type Id = number
 
 export interface Message {
 	id?: Id
@@ -29,6 +24,7 @@ export interface Response {
 }
 
 export interface ErrorMessage extends Message, Partial<Response> {
+	signal: Signal.Error
 	error: string
 }
 
@@ -54,14 +50,24 @@ export interface HandshakeResponse extends Message, Response {
 	allowed: Allowed
 }
 
-export interface CallResponse extends Message, Response {
+export interface CallResponse<R = any> extends Message, Response {
 	signal: Signal.Call
-	result: any
+	result: R
 }
 
 export interface Permission {
 	origin: RegExp
 	allowed: Allowed
+}
+
+export interface HandleMessageParams<gMessage extends Message = Message> {
+	message: gMessage
+	origin: string
+	permission: Permission
+}
+
+export interface MessageHandlers {
+	[key: string]: (params: HandleMessageParams) => Promise<Message & Response>
 }
 
 export interface Shims {

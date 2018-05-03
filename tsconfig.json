@@ -3,13 +3,14 @@
 		"baseUrl": ".",
 		"rootDir": "source",
 		"outDir": "dist",
-		"target": "es5",
+		"target": "esnext",
 		"lib": ["es6", "dom"],
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"experimentalDecorators": true,
 		"noImplicitAny": true,
-		"sourceMap": true,
+		// "sourceMap": true,
+		"inlineSourceMap": true,
 		"declaration": true
 	},
 	"include": [

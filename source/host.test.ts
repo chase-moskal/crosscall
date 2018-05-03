@@ -1,75 +1,174 @@
 
 import Host from "./host"
-import {Callee, Permission, Shims, Signal, Message} from "./interfaces"
+import {
+	Callee,
+	Permission,
+	Shims,
+	Signal,
+	Message,
+	HandshakeRequest,
+	HandshakeResponse,
+	CallRequest,
+	CallResponse
+} from "./interfaces"
+
+const makeTestOptions = () => ({
+	callee: {
+		async test1(x: number) { return x },
+		async test2(x: number) { return x + 1 }
+	},
+	permissions: [{
+		origin: /^https:\/\/alpha.egg$/i,
+		allowed: {
+			"testbed": ["test1", "test2"]
+		}
+	}],
+	shims: {
+		postMessage: jest.fn(),
+		addEventListener: jest.fn(),
+		removeEventListener: jest.fn()
+	}
+})
+
+const goodOrigin = "https://alpha.egg"
+const badOrigin = "https://bravo.egg"
 
 describe("crosscall host", () => {
 
-	const makeTestOptions = () => ({
-		callee: {
-			async test1() { return 1 },
-			async test2() { return 2 }
-		},
-		permissions: [{
-			origin: /^https:\/\/bravo.egg$/i,
-			allowed: {
-				"testbed": ["test1", "test2"]
-			}
-		}],
-		shims: {
-			postMessage: jest.fn(),
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn()
+	it("sends a wakeup mesesage", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const [message, origin] = <[Message, string]>shims.postMessage.mock.calls[0]
+		expect(message.id).toBe(0)
+		expect(message.signal).toBe(Signal.Wakeup)
+		expect(origin).toBe("*")
+	})
+
+	it("binds message event listener", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		expect(shims.addEventListener.mock.calls.length).toBe(1)
+	})
+
+	it("unbinds message event listener on destructor", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		host.destructor()
+		expect(shims.removeEventListener.mock.calls.length).toBe(1)
+	})
+
+	it("responds to handshake message", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const id = 123
+		const message: HandshakeRequest = {
+			id,
+			signal: Signal.Handshake
 		}
+		const origin = goodOrigin
+		await host.message({message, origin})
+		const [m, o] = <[HandshakeResponse, string]>shims.postMessage.mock.calls[1]
+		expect(m.response).toBe(id)
+		expect(o).toBe(origin)
 	})
 
-	describe("constructor", () => {
+	it("responds to call messages", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const origin = goodOrigin
 
-		it("sends a wakeup mesesage", async() => {
-			const {callee, permissions, shims} = makeTestOptions()
-			const host = new Host({callee, permissions, shims})
-			const [message, origin] = <[Message, string]>shims.postMessage.mock.calls[0]
-			expect(message.id).toBe(0)
-			expect(message.signal).toBe(Signal.Wakeup)
-			expect(origin).toBe("*")
+		await host.message({
+			message: <CallRequest>{
+				id: 123,
+				signal: Signal.Call,
+				topic: "testbed",
+				method: "test1",
+				params: [5]
+			},
+			origin
 		})
 
-		it("binds message event listener", async() => {
-			const {callee, permissions, shims} = makeTestOptions()
-			const host = new Host({callee, permissions, shims})
-			expect(shims.addEventListener.mock.calls.length).toBe(1)
+		const [call1message, call1origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[1]
+		expect(call1message.response).toBe(123)
+		expect(call1origin).toBe(origin)
+		expect(call1message.result).toBe(5)
+
+		await host.message({
+			message: <CallRequest>{
+				id: 124,
+				signal: Signal.Call,
+				topic: "testbed",
+				method: "test2",
+				params: [5]
+			},
+			origin
 		})
 
+		const [call2message, call2origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[2]
+		expect(call2message.response).toBe(124)
+		expect(call2origin).toBe(origin)
+		expect(call2message.result).toBe(6)
 	})
-	describe("destructor", () => {
 
-		it.skip("unbinds message event listener on destructor", async() => {
-			const {callee, permissions, shims} = makeTestOptions()
-			const host = new Host({callee, permissions, shims})
-			expect(shims.removeEventListener.mock.calls.length).toBe(1)
-		})
+	it("rejects unauthorized handshake requests", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const origin = badOrigin
 
+		expect(host.message({
+			message: <CallRequest>{
+				id: 123,
+				signal: Signal.Call,
+				topic: "testbed",
+				method: "test1",
+				params: [5]
+			},
+			origin
+		})).rejects.toBeDefined()
 	})
-	describe("send message", () => {
 
-		it.skip("posts message to parent window", async() => {
-			expect(false).toBeTruthy()
-		})
+	it("rejects unauthorized call requests", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const origin = badOrigin
 
+		expect(host.message({
+			message: <CallRequest>{
+				id: 123,
+				signal: Signal.Call,
+				topic: "testbed",
+				method: "test1",
+				params: [5]
+			},
+			origin
+		})).rejects.toBeDefined()
 	})
-	describe("handle message", () => {
-		describe("handshake handling", () => {
 
-			it.skip("responds to handshake message", async() => {
-				expect(false).toBeTruthy()
-			})
+	it("rejects unknown topics and methods", async() => {
+		const {callee, permissions, shims} = makeTestOptions()
+		const host = new Host({callee, permissions, shims})
+		const origin = goodOrigin
 
-		})
-		describe("call handling", () => {
+		expect(host.message({
+			message: <CallRequest>{
+				id: 123,
+				signal: Signal.Call,
+				topic: "000testbed",
+				method: "test1",
+				params: [5]
+			},
+			origin
+		})).rejects.toBeDefined()
 
-			it.skip("responds to call message", async() => {
-				expect(false).toBeTruthy()
-			})
-
-		})
+		expect(host.message({
+			message: <CallRequest>{
+				id: 123,
+				signal: Signal.Call,
+				topic: "testbed",
+				method: "000test1",
+				params: [5]
+			},
+			origin
+		})).rejects.toBeDefined()
 	})
 })
