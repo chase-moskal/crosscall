@@ -5,6 +5,7 @@
 	"main": "dist",
 	"scripts": {
 		"prepare": "rimraf dist && tsc && npm test -s",
+		"build-debug": "rimraf dist && tsc --target esnext --sourceMap false --inlineSourceMap true",
 		"test": "jest --verbose"
 	},
 	"repository": {
