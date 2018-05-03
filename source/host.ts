@@ -38,7 +38,7 @@ export default class Host<gCallee extends Callee = Callee> {
 	destructor() {
 		const {handleMessageEvent} = this
 		const {removeEventListener} = this.shims
-		removeEventListener("message", handleMessageEvent)
+		this.shims.removeEventListener("message", handleMessageEvent)
 	}
 
 	async receiveMessage<gMessage extends Message = Message>({message, origin}: {
@@ -69,7 +69,7 @@ export default class Host<gCallee extends Callee = Callee> {
 	private sendMessage<gMessage extends Message = Message>(message: gMessage, origin: string) {
 		const {postMessage} = this.shims
 		const payload: gMessage = {...<any>message, id: this.messageId++}
-		postMessage(payload, origin)
+		this.shims.postMessage(payload, origin)
 	}
 
 	private readonly messageHandlers: HostMessageHandlers = {
@@ -95,7 +95,7 @@ export default class Host<gCallee extends Callee = Callee> {
 			this.sendMessage<CallResponse>({
 				signal: Signal.Call,
 				associate: id,
-				result: await callee[method](...params)
+				result: await callee[topic][method](...params)
 			}, origin)
 		}
 	}

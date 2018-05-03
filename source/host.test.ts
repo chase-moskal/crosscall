@@ -12,15 +12,21 @@ import {
 	CallResponse
 } from "./interfaces"
 
+const testTopic = "testTopic"
+const test1 = "test1"
+const test2 = "test2"
+
 const makeTestOptions = () => ({
 	callee: {
-		async test1(x: number) { return x },
-		async test2(x: number) { return x + 1 }
+		[testTopic]: {
+			async ["test1"](x: number) { return x },
+			async ["test2"](x: number) { return x + 1 }
+		}
 	},
 	permissions: [{
 		origin: /^https:\/\/alpha.egg$/i,
 		allowed: {
-			"testbed": ["test1", "test2"]
+			testTopic: [test1, test2]
 		}
 	}],
 	shims: {
@@ -81,8 +87,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: "testbed",
-				method: "test1",
+				topic: testTopic,
+				method: test1,
 				params: [5]
 			},
 			origin
@@ -97,8 +103,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 124,
 				signal: Signal.Call,
-				topic: "testbed",
-				method: "test2",
+				topic: testTopic,
+				method: test2,
 				params: [5]
 			},
 			origin
@@ -119,8 +125,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: "testbed",
-				method: "test1",
+				topic: testTopic,
+				method: test1,
 				params: [5]
 			},
 			origin
@@ -136,8 +142,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: "testbed",
-				method: "test1",
+				topic: testTopic,
+				method: test1,
 				params: [5]
 			},
 			origin
@@ -153,8 +159,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: "000testbed",
-				method: "test1",
+				topic: "000",
+				method: test1,
 				params: [5]
 			},
 			origin
@@ -164,8 +170,8 @@ describe("crosscall host", () => {
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
-				topic: "testbed",
-				method: "000test1",
+				topic: testTopic,
+				method: "000",
 				params: [5]
 			},
 			origin

@@ -1,6 +1,11 @@
 
 export const errtag = "crosscall error -"
 
+export interface Message {
+	id?: Id
+	signal: Signal
+}
+
 export type Id = number
 
 export const enum Signal {
@@ -10,11 +15,10 @@ export const enum Signal {
 	Call
 }
 
-export interface Message {
-	id?: Id
-	signal: Signal
-}
-
+/**
+ * - object which is associated with a message
+ * - eg response messages may implement this
+ */
 export interface Associated {
 	associate: Id
 }
@@ -43,10 +47,10 @@ export interface PendingRequest {
 }
 
 export interface Allowed {
-
-	/** array of method names */
-	[topicName: string]: string[]
+	[topic: string]: AllowedMethods
 }
+
+export type AllowedMethods = string[]
 
 export interface HandshakeResponse extends Message, Associated {
 	signal: Signal.Handshake
@@ -78,8 +82,14 @@ export interface ClientMessageHandlers {
 }
 
 export interface Callee {
-	[method: string]: (...args: any[]) => Promise<any>
+	[topic: string]: CalleeTopic
 }
+
+export interface CalleeTopic {
+	[method: string]: CalleeMethod
+}
+
+export type CalleeMethod = (...args: any[]) => Promise<any>
 
 export interface HostShims {
 	postMessage: typeof window.parent.postMessage
