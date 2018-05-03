@@ -10,16 +10,18 @@ export const enum Signal {
 	Call
 }
 
-export interface Response {
-	response: Id
-}
-
 export interface Message {
 	id?: Id
 	signal: Signal
 }
 
-export interface ErrorMessage extends Message, Partial<Response> {
+export interface Associated {
+	associate: Id
+}
+
+export interface ResponseMessage extends Message, Associated {}
+
+export interface ErrorMessage extends Message, Partial<Associated> {
 	signal: Signal.Error
 	error: string
 }
@@ -35,18 +37,23 @@ export interface CallRequest extends Message {
 	params: any[]
 }
 
+export interface PendingRequest {
+	resolve: any
+	reject: any
+}
+
 export interface Allowed {
 
 	/** array of method names */
 	[topicName: string]: string[]
 }
 
-export interface HandshakeResponse extends Message, Response {
+export interface HandshakeResponse extends Message, Associated {
 	signal: Signal.Handshake
 	allowed: Allowed
 }
 
-export interface CallResponse<R = any> extends Message, Response {
+export interface CallResponse<R = any> extends Message, Associated {
 	signal: Signal.Call
 	result: R
 }
@@ -62,8 +69,12 @@ export interface HandleMessageParams<gMessage extends Message = Message> {
 	permission: Permission
 }
 
-export interface MessageHandlers {
-	[key: string]: (params: HandleMessageParams) => Promise<Message & Response>
+export interface HostMessageHandlers {
+	[key: string]: (params: HandleMessageParams) => Promise<void>
+}
+
+export interface ClientMessageHandlers {
+	[key: string]: (message: Message) => Promise<void>
 }
 
 export interface Callee {

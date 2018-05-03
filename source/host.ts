@@ -1,20 +1,20 @@
 
 import {
-	HostShims,
 	errtag,
 	Callee,
 	Signal,
 	Allowed,
 	Message,
+	HostShims,
 	Permission,
 	CallRequest,
 	HostOptions,
 	CallResponse,
 	ErrorMessage,
-	MessageHandlers,
 	HandshakeRequest,
 	HandshakeResponse,
-	HandleMessageParams
+	HandleMessageParams,
+	HostMessageHandlers
 } from "./interfaces"
 
 export default class Host<gCallee extends Callee = Callee> {
@@ -31,76 +31,72 @@ export default class Host<gCallee extends Callee = Callee> {
 		this.shims = {...defaultShims, ...shims}
 		this.callee = callee
 		this.permissions = permissions
-		this.shims.addEventListener("message", this.handleMessage, false)
+		this.shims.addEventListener("message", this.handleMessageEvent, false)
 		this.sendMessage({signal: Signal.Wakeup}, "*")
 	}
 
 	destructor() {
-		const {handleMessage} = this
+		const {handleMessageEvent} = this
 		const {removeEventListener} = this.shims
-		removeEventListener("message", handleMessage)
+		removeEventListener("message", handleMessageEvent)
 	}
 
-	async message<gMessage extends Message = Message>({message, origin}: {
+	async receiveMessage<gMessage extends Message = Message>({message, origin}: {
 		message: gMessage
 		origin: string
 	}) {
 		try {
 			const {permissions} = this
 			const permission = getOriginPermission({origin, permissions})
-
 			const handler = this.messageHandlers[message.signal]
 			const response = await handler({message, origin, permission})
-
-			this.sendMessage(response, origin)
 		}
 		catch (error) {
 			const errorMessage: ErrorMessage = {
 				signal: Signal.Error,
 				error: error.message,
-				response: message.id
+				associate: message.id
 			}
 			this.sendMessage(errorMessage, origin)
 			throw error
 		}
 	}
 
-	private readonly handleMessage = async({
+	private readonly handleMessageEvent = async({
 		origin, data: message
-	}: MessageEvent) => this.message({origin, message})
+	}: MessageEvent) => this.receiveMessage({origin, message})
 
-	private sendMessage(data: Message, target: string) {
+	private sendMessage<gMessage extends Message = Message>(message: gMessage, origin: string) {
 		const {postMessage} = this.shims
-		const payload = {...data, id: this.messageId++}
-		postMessage(payload, target)
+		const payload: gMessage = {...<any>message, id: this.messageId++}
+		postMessage(payload, origin)
 	}
 
-	private readonly messageHandlers: MessageHandlers = {
+	private readonly messageHandlers: HostMessageHandlers = {
+
 		[Signal.Handshake]: async({
 			message, origin, permission
-		}: HandleMessageParams<HandshakeRequest>): Promise<HandshakeResponse> => {
+		}: HandleMessageParams<HandshakeRequest>): Promise<void> => {
 			const {allowed} = permission
-			return {
+			this.sendMessage<HandshakeResponse>({
 				signal: Signal.Handshake,
-				response: message.id,
+				associate: message.id,
 				allowed
-			}
+			}, origin)
 		},
 
 		[Signal.Call]: async({
 			message, origin, permission
-		}: HandleMessageParams<CallRequest>): Promise<CallResponse> => {
+		}: HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
 			const {allowed} = permission
-
 			validateMethodPermission({allowed, topic, method, origin})
-
-			return {
+			this.sendMessage<CallResponse>({
 				signal: Signal.Call,
-				response: id,
+				associate: id,
 				result: await callee[method](...params)
-			}
+			}, origin)
 		}
 	}
 }

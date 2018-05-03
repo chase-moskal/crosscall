@@ -66,9 +66,9 @@ describe("crosscall host", () => {
 			signal: Signal.Handshake
 		}
 		const origin = goodOrigin
-		await host.message({message, origin})
+		await host.receiveMessage({message, origin})
 		const [m, o] = <[HandshakeResponse, string]>shims.postMessage.mock.calls[1]
-		expect(m.response).toBe(id)
+		expect(m.associate).toBe(id)
 		expect(o).toBe(origin)
 	})
 
@@ -77,7 +77,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
-		await host.message({
+		await host.receiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -89,11 +89,11 @@ describe("crosscall host", () => {
 		})
 
 		const [call1message, call1origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[1]
-		expect(call1message.response).toBe(123)
+		expect(call1message.associate).toBe(123)
 		expect(call1origin).toBe(origin)
 		expect(call1message.result).toBe(5)
 
-		await host.message({
+		await host.receiveMessage({
 			message: <CallRequest>{
 				id: 124,
 				signal: Signal.Call,
@@ -105,7 +105,7 @@ describe("crosscall host", () => {
 		})
 
 		const [call2message, call2origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[2]
-		expect(call2message.response).toBe(124)
+		expect(call2message.associate).toBe(124)
 		expect(call2origin).toBe(origin)
 		expect(call2message.result).toBe(6)
 	})
@@ -115,7 +115,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
-		expect(host.message({
+		expect(host.receiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -132,7 +132,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
-		expect(host.message({
+		expect(host.receiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -149,7 +149,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
-		expect(host.message({
+		expect(host.receiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -160,7 +160,7 @@ describe("crosscall host", () => {
 			origin
 		})).rejects.toBeDefined()
 
-		expect(host.message({
+		expect(host.receiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,

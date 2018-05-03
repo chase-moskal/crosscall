@@ -35,4 +35,9 @@ describe("crosscall client", (): any => {
 		expect(event).toBe("message")
 		expect(listener).toBeDefined()
 	})
+
+	it.skip("accepts wakeup message and allowed topics", async() => {
+		const {shims, ...opts} = makeTestOptions()
+		const client = new Client({shims, ...opts})
+	})
 })
