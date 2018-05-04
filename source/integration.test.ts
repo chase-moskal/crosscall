@@ -1,7 +1,7 @@
 
 import {Host, Client} from "./index"
 import {Message, Signal} from "./interfaces"
-import {makeClientOptions, makeHostOptions} from "./testing"
+import {makeClientOptions, makeHostOptions, TestCallee} from "./testing"
 
 const sleep = async(ms: number) =>
 	new Promise((resolve, reject) => setTimeout(resolve, ms))
@@ -31,7 +31,7 @@ const makeBridgedSetup = () => {
 	))
 
 	// client created first, the way iframes work
-	const client = new Client(clientOptions)
+	const client = new Client<TestCallee>(clientOptions)
 	const host = new Host(hostOptions)
 
 	return {client, host, clientOptions, hostOptions}
@@ -67,5 +67,14 @@ describe("crosscall host/client integration", () => {
 		expect(callable.testTopic).toBeDefined()
 		expect(callable.testTopic).toHaveProperty("test1")
 		expect(callable.testTopic).toHaveProperty("test2")
+	})
+
+	test("end to end call requests", async() => {
+		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const callable = await client.callable
+		const result = await callable.testTopic.test1(5)
+		expect(result).toBe(5)
+		const result2 = await callable.testTopic.test2(5)
+		expect(result2).toBe(6)
 	})
 })

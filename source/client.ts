@@ -10,6 +10,7 @@ import {
 	Message,
 	Associated,
 	ClientShims,
+	CallRequest,
 	CallResponse,
 	ErrorMessage,
 	ClientOptions,
@@ -97,6 +98,19 @@ export default class Client<gCallee extends Callee = Callee> {
 		return id
 	}
 
+	private async callRequest({topic, method, params}: {
+		topic: string
+		method: string
+		params: any[]
+	}): Promise<CallResponse> {
+		return this.request<CallResponse>(<CallRequest>{
+			signal: Signal.Call,
+			topic,
+			method,
+			params
+		})
+	}
+
 	private passResponseToRequest(response: Message & Associated): void {
 		const pending = this.requests.get(response.associate)
 		if (!pending) throw error(`unknown response, id "${response.id}" `
@@ -113,7 +127,10 @@ export default class Client<gCallee extends Callee = Callee> {
 			const methods = allowed[topic]
 			const obj: any = {}
 			for (const method of methods) {
-				obj[method] = async() => {}
+				obj[method] = async(...params: any[]) => {
+					const response = await this.callRequest({topic, method, params})
+					return response.result
+				}
 			}
 			callable[topic] = obj
 		}

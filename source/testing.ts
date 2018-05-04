@@ -1,4 +1,13 @@
 
+import {Callee} from "./interfaces"
+
+export interface TestCallee extends Callee {
+	testTopic: {
+		test1(x: number): Promise<number>
+		test2(x: number): Promise<number>
+	}
+}
+
 export const makeClientOptions = () => ({
 	link: "https://alpha.egg/crosscall-host.html",
 	targetOrigin: "https://alpha.egg",
@@ -13,7 +22,7 @@ export const makeClientOptions = () => ({
 })
 
 export const makeHostOptions = () => ({
-	callee: {
+	callee: <TestCallee>{
 		testTopic: {
 			async test1(x: number) { return x },
 			async test2(x: number) { return x + 1 }
