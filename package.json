@@ -6,6 +6,7 @@
 	"scripts": {
 		"prepare": "rimraf dist && tsc && npm test -s",
 		"build-debug": "rimraf dist && tsc --target esnext --sourceMap false --inlineSourceMap true",
+		"coverage": "npm run build-debug -s && jest --verbose --coverage",
 		"test": "jest --verbose"
 	},
 	"repository": {
