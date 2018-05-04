@@ -17,12 +17,13 @@
 
 ## usage by example
 
-- host page, at "`https://alpha.egg/host.html`"
+- **host page, at "`https://localhost:8080/host.html`"**  
+	see sourcecode [host.ts](./source/host.ts)
 
 	```js
 	const host = new Host({
 
-		// object with async functionality to be exposed
+		// async functionality exposed for clients to call
 		callee: {
 			testTopic: {
 				async test1(x) { return x },
@@ -32,31 +33,33 @@
 
 		// each client origin gets its own callee access permission
 		permissions: [{
-			origin: /^https:\/\/bravo.egg/,
+			origin: /^http:\/\/localhost:8080/,
 			allowed: {
 				testTopic: ["test1", "test2"]
 			}
 		}]
-	}
+	})
 	```
 
-- client page, at "`https://bravo.egg/client.html`"
+- **client page, at "`https://localhost:8080/index.html`"**  
+	see sourcecode [client.ts](./source/client.ts)
 
 	```js
+	// create crosscall client
 	const client = new Client({
-		link: "https://alpha.egg/host.html",
-		targetOrigin: "https://alpha.egg"
+		link: "http://localhost:8080/host.html",
+		targetOrigin: "http://localhost:8080"
 	})
 
-	async function demoBusiness() {
+	// wait for the callable object to become available
+	const {testTopic} = await client.callable
 
-		// wait for the client to provide the callable object
-		const {testTopic} = await client.callable
+	// seamlessly utilize the host's async functionality
+	const result1 = await testTopic.test1(4)
+	const result2 = await testTopic.test2(4)
 
-		// each topic is seamlessly usable
-		const result1 = await testTopic.test1(4) //> 4
-		const result2 = await testTopic.test2(4) //> 5
-	}
+	console.log(result1) //> 4
+	console.log(result2) //> 5
 	```
 
 ## design ideas

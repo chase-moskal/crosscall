@@ -52,6 +52,7 @@ export default class Client<gCallee extends Callee = Callee> {
 	private preparePostMessage(link: string) {
 		if (this.shims.postMessage) return
 		this.iframe = this.shims.createElement("iframe")
+		this.iframe.style.display = "none"
 		this.iframe.src = link
 		this.shims.appendChild(this.iframe)
 		this.shims.postMessage = this.iframe.contentWindow.postMessage.bind(

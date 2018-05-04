@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>crosscall host</title>
+	</head>
+	<body>
+		<script src="node_modules/requirejs/require.js"></script>
+		<script>
+			require(["./dist/host"], ({default: Host, ...mod}) => {
+
+				const host = new Host({
+
+					// async functionality exposed for clients to call
+					callee: {
+						testTopic: {
+							async test1(x) { return x },
+							async test2(x) { return x + 1 },
+							async test3() { return Date.now() }
+						}
+					},
+
+					// each client origin gets its own callee access permission
+					permissions: [{
+						origin: /^http:\/\/localhost:8080/,
+						allowed: {
+							testTopic: ["test1", "test2", "test3"]
+						}
+					}]
+				})
+
+			})
+		</script>
+	</body>
+</html>

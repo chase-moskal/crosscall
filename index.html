@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>crosscall demo</title>
+		<style>
+			html, body {
+				min-height: 100%;
+				background: #222;
+				color: #aaa;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>crosscall <span class="timekeeper"></span></h1>
+		<script src="node_modules/requirejs/require.js"></script>
+		<script>
+			require(["./dist/client"], ({default: Client, ...mod}) => {
+				(async() => {
+
+					// create crosscall client
+					const client = new Client({
+						link: "http://localhost:8080/host.html",
+						targetOrigin: "http://localhost:8080"
+					})
+
+					// wait for the callable object to become available
+					const {testTopic} = await client.callable
+
+					// seamlessly utilize the host's async functionality
+					const result1 = await testTopic.test1(4)
+					const result2 = await testTopic.test2(4)
+
+					console.log(result1) //> 4
+					console.log(result2) //> 5
+
+					// continually update results from the host
+					const timekeeper = document.querySelectorAll(".timekeeper")
+					async function updateTime() {
+						const time = await testTopic.test3()
+						for (const keeper of timekeeper) keeper.textContent = time
+					}
+					updateTime()
+					setInterval(updateTime, 40)
+				})()
+			})
+		</script>
+	</body>
+</html>

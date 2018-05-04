@@ -1,12 +1,16 @@
 {
 	"name": "crosscall",
-	"version": "0.0.0-dev.4",
+	"version": "0.0.0-dev.5",
 	"description": "cross-origin postmessage rpc",
 	"main": "dist",
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"prepare": "rimraf dist && tsc && npm test -s",
 		"build-debug": "rimraf dist && tsc --target esnext --sourceMap false --inlineSourceMap true",
 		"coverage": "npm run build-debug -s && jest --verbose --coverage",
+		"start": "http-server",
 		"test": "jest --verbose"
 	},
 	"repository": {
@@ -14,15 +18,15 @@
 		"url": "git+https://github.com/chase-moskal/crosscall.git"
 	},
 	"keywords": [
-		"cors",
-		"crossdomain",
-		"crossorigin",
-		"xorigin",
-		"xdomain",
-		"iframe",
+		"cross-origin",
+		"cross-domain",
 		"postmessage",
 		"rpc",
-		"bridge"
+		"iframe",
+		"rpc",
+		"bridge",
+		"xorigin",
+		"xdomain"
 	],
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -32,8 +36,10 @@
 	"homepage": "https://github.com/chase-moskal/crosscall#readme",
 	"devDependencies": {
 		"@types/jest": "22.2.3",
+		"http-server": "0.11.1",
 		"jest": "22.4.3",
 		"mock-local-storage": "1.0.5",
+		"requirejs": "2.3.5",
 		"rimraf": "2.6.2",
 		"typescript": "2.8.3"
 	}
