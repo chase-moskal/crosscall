@@ -51,6 +51,16 @@ export default class Client<gCallee extends Callee = Callee> {
 		this.shims.removeEventListener("message", this.handleMessageEvent)
 	}
 
+	private preparePostMessage(link: string) {
+		if (this.shims.postMessage) return
+		this.iframe = this.shims.createElement("iframe")
+		this.iframe.src = link
+		this.shims.appendChild(this.iframe)
+		this.shims.postMessage = this.iframe.contentWindow.postMessage.bind(
+			this.iframe.contentWindow
+		)
+	}
+
 	protected async receiveMessage<gMessage extends Message = Message>({
 		message,
 		origin
@@ -74,16 +84,6 @@ export default class Client<gCallee extends Callee = Callee> {
 	private readonly handleMessageEvent = ({
 		origin, data: message
 	}: MessageEvent) => this.receiveMessage({message, origin})
-
-	private preparePostMessage(link: string) {
-		if (this.shims.postMessage) return
-		this.iframe = this.shims.createElement("iframe")
-		this.iframe.src = link
-		this.shims.appendChild(this.iframe)
-		this.shims.postMessage = this.iframe.contentWindow.postMessage.bind(
-			this.iframe.contentWindow
-		)
-	}
 
 	private async request<gResponse extends ResponseMessage = ResponseMessage>(
 		message: Message
