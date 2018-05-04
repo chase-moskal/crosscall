@@ -3,10 +3,9 @@ import {Host, Client} from "./index"
 import {Message, Signal} from "./interfaces"
 import {makeClientOptions, makeHostOptions, TestCallee} from "./testing"
 
+const nap = async() => sleep(10)
 const sleep = async(ms: number) =>
 	new Promise((resolve, reject) => setTimeout(resolve, ms))
-
-const nap = async() => sleep(10)
 
 const goodOrigin = "https://alpha.egg"
 
@@ -43,7 +42,6 @@ describe("crosscall host/client integration", () => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
 		const {postMessage: hostPostMessage} = hostOptions.shims
 		const {postMessage: clientPostMessage} = clientOptions.shims
-
 		await nap()
 		expect(hostPostMessage).toHaveBeenCalled()
 		expect(clientPostMessage).toHaveBeenCalled()
@@ -54,7 +52,6 @@ describe("crosscall host/client integration", () => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
 		const {postMessage: hostPostMessage} = hostOptions.shims
 		const {postMessage: clientPostMessage} = clientOptions.shims
-
 		await nap()
 		expect(clientPostMessage.mock.calls[0][0].signal).toBe(Signal.Handshake)
 		expect(hostPostMessage.mock.calls[1][0].signal).toBe(Signal.Handshake)
@@ -71,10 +68,10 @@ describe("crosscall host/client integration", () => {
 
 	test("end to end call requests", async() => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
-		const callable = await client.callable
-		const result = await callable.testTopic.test1(5)
+		const {testTopic} = await client.callable
+		const result = await testTopic.test1(5)
 		expect(result).toBe(5)
-		const result2 = await callable.testTopic.test2(5)
+		const result2 = await testTopic.test2(5)
 		expect(result2).toBe(6)
 	})
 })
