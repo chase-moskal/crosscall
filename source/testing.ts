@@ -2,13 +2,13 @@
 export const makeClientOptions = () => ({
 	link: "https://alpha.egg/crosscall-host.html",
 	targetOrigin: "https://alpha.egg",
-	shims: <any>{
-		createElement: jest.fn(),
-		appendChild: jest.fn(),
-		removeChild: jest.fn(),
-		addEventListener: jest.fn(),
-		removeEventListener: jest.fn(),
-		postMessage: jest.fn()
+	shims: {
+		createElement: jest.fn<typeof document.createElement>(),
+		appendChild: jest.fn<typeof document.appendChild>(),
+		removeChild: jest.fn<typeof document.removeChild>(),
+		addEventListener: jest.fn<typeof window.addEventListener>(),
+		removeEventListener: jest.fn<typeof window.removeEventListener>(),
+		postMessage: jest.fn<typeof window.postMessage>()
 	}
 })
 
@@ -26,8 +26,8 @@ export const makeHostOptions = () => ({
 		}
 	}],
 	shims: {
-		postMessage: jest.fn(),
-		addEventListener: jest.fn(),
-		removeEventListener: jest.fn()
+		postMessage: jest.fn<typeof window.postMessage>(),
+		addEventListener: jest.fn<typeof window.addEventListener>(),
+		removeEventListener: jest.fn<typeof window.removeEventListener>()
 	}
 })

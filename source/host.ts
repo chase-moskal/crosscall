@@ -1,5 +1,8 @@
 
+import error from "./error"
+
 import {
+	Id,
 	errtag,
 	Callee,
 	Signal,
@@ -66,10 +69,12 @@ export default class Host<gCallee extends Callee = Callee> {
 		origin, data: message
 	}: MessageEvent) => this.receiveMessage({origin, message})
 
-	private sendMessage<gMessage extends Message = Message>(message: gMessage, origin: string) {
+	private sendMessage<gMessage extends Message = Message>(message: gMessage, origin: string): Id {
 		const {postMessage} = this.shims
-		const payload: gMessage = {...<any>message, id: this.messageId++}
+		const id = this.messageId++
+		const payload: gMessage = {...<any>message, id}
 		this.shims.postMessage(payload, origin)
+		return id
 	}
 
 	private readonly messageHandlers: HostMessageHandlers = {
@@ -112,8 +117,7 @@ function getOriginPermission({origin, permissions}: {
 	permissions: Permission[]
 }): Permission {
 	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
-	if (!permission)
-		throw new Error(`${errtag} no permission for origin "${origin}"`)
+	if (!permission) throw error(`no permission for origin "${origin}"`)
 	return permission
 }
 
@@ -125,7 +129,6 @@ function validateMethodPermission({allowed, topic, method, origin}: {
 }) {
 	const methods = allowed[topic]
 	const granted = methods && methods.find(m => m === method)
-	if (!granted) throw new Error(
-		`${errtag} no permission for method "${topic}.${method}" for origin` +
-		` "${origin}"`)
+	if (!granted) throw error(`no permission for method "${topic}.${method}" for `
+		+ `origin "${origin}"`)
 }

@@ -1,4 +1,6 @@
 
+import error from "./error"
+
 import {
 	Id,
 	errtag,
@@ -26,8 +28,10 @@ export default class Client<gCallee extends Callee = Callee> {
 	private readonly requests: Map<Id, PendingRequest> = new Map()
 	private iframe: HTMLIFrameElement
 	private messageId = 0
+	private callableReady = false
 	private resolveCallable: any
-	private readonly callable = new Promise<gCallee>((resolve, reject) => {
+
+	readonly callable = new Promise<gCallee>((resolve, reject) => {
 		this.resolveCallable = resolve
 	})
 
@@ -53,11 +57,11 @@ export default class Client<gCallee extends Callee = Callee> {
 		const {hostOrigin} = this
 
 		if (origin !== this.hostOrigin)
-			throw new Error(`${errtag} message rejected from origin "${origin}"`)
+			throw error(`message rejected from origin "${origin}"`)
 
 		const handler = this.messageHandlers[message.signal]
 		if (!handler)
-			throw new Error(`${errtag} unknown message signal ${message.signal}`)
+			throw error(`unknown message signal ${message.signal}`)
 
 		handler(message)
 	}
@@ -79,24 +83,24 @@ export default class Client<gCallee extends Callee = Callee> {
 	private async request<gResponse extends ResponseMessage = ResponseMessage>(
 		message: Message
 	): Promise<gResponse> {
-		this.sendMessage(message)
+		const id = this.sendMessage(message)
 		return new Promise<gResponse>((resolve, reject) => {
-			this.requests.set(message.id, {resolve,reject})
+			this.requests.set(id, {resolve,reject})
 		})
 	}
 
-	private sendMessage(message: Message): void {
+	private sendMessage(message: Message): Id {
 		const {iframe, hostOrigin} = this
-		const payload: Message = {...message, id: this.messageId++}
+		const id = this.messageId++
+		const payload: Message = {...message, id}
 		this.shims.postMessage(payload, hostOrigin)
+		return id
 	}
 
 	private passResponseToRequest(response: Message & Associated): void {
 		const pending = this.requests.get(response.associate)
-		if (!pending) throw new Error(
-			`${errtag} unknown response, id "${response.id}" responding to `
-			+ `"${response.associate}"`
-		)
+		if (!pending) throw error(`unknown response, id "${response.id}" `
+			+ `responding to "${response.associate}"`)
 		const {resolve, reject} = pending
 		this.requests.delete(response.associate)
 		if (response.signal === Signal.Error) reject((<ErrorMessage>response).error)
@@ -121,6 +125,10 @@ export default class Client<gCallee extends Callee = Callee> {
 			const request: HandshakeRequest = {signal: Signal.Handshake}
 			const {allowed} = await this.request<HandshakeResponse>(request)
 			const callable = this.makeCallable(allowed)
+			if (!this.callableReady) {
+				this.resolveCallable(callable)
+				this.callableReady = true
+			}
 		},
 		[Signal.Handshake]: async(response: HandshakeResponse): Promise<void> => {
 			this.passResponseToRequest(response)
