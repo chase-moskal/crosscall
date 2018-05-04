@@ -1,11 +1,8 @@
 {
 	"name": "crosscall",
-	"version": "0.0.0-dev.5",
+	"version": "0.0.0-dev.6",
 	"description": "cross-origin postmessage rpc",
 	"main": "dist",
-	"files": [
-		"dist"
-	],
 	"scripts": {
 		"prepare": "rimraf dist && tsc && npm test -s",
 		"build-debug": "rimraf dist && tsc --target esnext --sourceMap false --inlineSourceMap true",
