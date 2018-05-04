@@ -9,10 +9,14 @@
 				background: #222;
 				color: #aaa;
 			}
+			a { color: skyblue; }
+			a:hover { color: lightblue; }
 		</style>
 	</head>
 	<body>
 		<h1>crosscall <span class="timekeeper"></span></h1>
+		<a href="https://github.com/chase-moskal/crosscall">crosscall on github</a>
+
 		<script src="node_modules/requirejs/require.js"></script>
 		<script>
 			require(["./dist/client"], ({default: Client, ...mod}) => {

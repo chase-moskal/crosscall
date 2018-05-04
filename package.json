@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.0-dev.6",
+	"version": "0.0.0",
 	"description": "cross-origin postmessage rpc",
 	"main": "dist",
 	"scripts": {

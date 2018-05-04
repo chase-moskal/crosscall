@@ -15,6 +15,8 @@
 	allowing access to a single localstorage from any domain  
 	— actually that's my next project, stay tuned
 
+- [live demo](https://chasemoskal.com/crosscall/)
+
 ## usage by example
 
 - **host page, at "`https://localhost:8080/host.html`"**  
@@ -62,7 +64,7 @@
 	console.log(result2) //> 5
 	```
 
-## design ideas
+## design
 
 - **seamless calling experience for the client**
 	- no more awful-to-maintain string literals:
@@ -79,8 +81,4 @@
 
 - **simple permissions system**
 	- can allow access differently for each origin, on a per-method basis
-
-- **secure** *[coming soon hahah]*
-	- both client and server will reject messages from untrusted origins
-	- it's architected with security in mind, but many more unit tests are needed  
-		to really lock this thing down — it's young yet :)
+	- both client and host will reject messages from untrusted origins
