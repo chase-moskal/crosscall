@@ -22,7 +22,7 @@
 
 					// each client origin gets its own callee access permission
 					permissions: [{
-						origin: /^http:\/\/localhost:8080/,
+						origin: new RegExp(window.location.origin, "i"),
 						allowed: {
 							testTopic: ["test1", "test2", "test3"]
 						}

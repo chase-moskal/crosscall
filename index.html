@@ -18,10 +18,12 @@
 			require(["./dist/client"], ({default: Client, ...mod}) => {
 				(async() => {
 
+					const {origin} = window.location
+
 					// create crosscall client
 					const client = new Client({
-						link: "http://localhost:8080/host.html",
-						targetOrigin: "http://localhost:8080"
+						link: `${origin}/host.html`,
+						targetOrigin: origin
 					})
 
 					// wait for the callable object to become available
