@@ -1,5 +1,7 @@
 
-import {Callee} from "./interfaces"
+import {Callee, Message} from "./interfaces"
+import Client from "./client"
+import Host from "./host"
 
 export interface TestCallee extends Callee {
 	testTopic: {
@@ -40,3 +42,21 @@ export const makeHostOptions = () => ({
 		removeEventListener: jest.fn<typeof window.removeEventListener>()
 	}
 })
+
+export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
+	async testReceiveMessage<gMessage extends Message = Message>(params: {
+		message: gMessage
+		origin: string
+	}) {
+		return this.receiveMessage(params)
+	}
+}
+
+export class TestClient<gCallee extends Callee = Callee> extends Client<gCallee> {
+	async testReceiveMessage<gMessage extends Message = Message>(params: {
+		message: gMessage
+		origin: string
+	}): Promise<void> {
+		return this.receiveMessage(params)
+	}
+}

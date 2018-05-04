@@ -1,7 +1,12 @@
 
-import {Host, Client} from "./index"
 import {Message, Signal} from "./interfaces"
-import {makeClientOptions, makeHostOptions, TestCallee} from "./testing"
+import {
+	makeClientOptions,
+	makeHostOptions,
+	TestCallee,
+	TestClient as Client,
+	TestHost as Host
+} from "./testing"
 
 const nap = async() => sleep(10)
 const sleep = async(ms: number) =>
@@ -17,7 +22,7 @@ const makeBridgedSetup = () => {
 	hostOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
 		async(message: Message, origin: string) => {
 			await sleep(0)
-			client.receiveMessage({message, origin: goodOrigin})
+			client.testReceiveMessage({message, origin: goodOrigin})
 		}
 	))
 
@@ -25,7 +30,7 @@ const makeBridgedSetup = () => {
 	clientOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
 		async(message: Message, origin: string) => {
 			await sleep(0)
-			host.receiveMessage({message, origin: goodOrigin})
+			host.testReceiveMessage({message, origin: goodOrigin})
 		}
 	))
 

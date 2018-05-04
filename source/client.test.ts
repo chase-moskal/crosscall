@@ -1,6 +1,5 @@
 
-import {makeClientOptions} from "./testing"
-import Client from "./client"
+import {makeClientOptions, TestClient as Client} from "./testing"
 import {
 	Signal,
 	Message,
@@ -33,7 +32,7 @@ describe("crosscall client", (): any => {
 		const client = new Client({shims, ...opts})
 		const message: Message = {signal: Signal.Wakeup}
 		const origin = goodOrigin
-		await client.receiveMessage({message, origin})
+		await client.testReceiveMessage({message, origin})
 		expect(shims.postMessage.mock.calls.length).toBe(1)
 	})
 })

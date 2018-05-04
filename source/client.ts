@@ -51,10 +51,14 @@ export default class Client<gCallee extends Callee = Callee> {
 		this.shims.removeEventListener("message", this.handleMessageEvent)
 	}
 
-	async receiveMessage<gMessage extends Message = Message>({message, origin}: {
+	protected async receiveMessage<gMessage extends Message = Message>({
+		message,
+		origin
+	}: {
 		message: gMessage
 		origin: string
 	}): Promise<void> {
+
 		const {hostOrigin} = this
 
 		if (origin !== this.hostOrigin)

@@ -1,6 +1,5 @@
 
-import {makeHostOptions} from "./testing"
-import Host from "./host"
+import {makeHostOptions, TestHost as Host} from "./testing"
 import {
 	Callee,
 	Permission,
@@ -48,7 +47,7 @@ describe("crosscall host", () => {
 			signal: Signal.Handshake
 		}
 		const origin = goodOrigin
-		await host.receiveMessage({message, origin})
+		await host.testReceiveMessage({message, origin})
 		const [m, o] = <[HandshakeResponse, string]>shims.postMessage.mock.calls[1]
 		expect(m.associate).toBe(id)
 		expect(o).toBe(origin)
@@ -59,7 +58,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
-		await host.receiveMessage({
+		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -75,7 +74,7 @@ describe("crosscall host", () => {
 		expect(call1origin).toBe(origin)
 		expect(call1message.result).toBe(5)
 
-		await host.receiveMessage({
+		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 124,
 				signal: Signal.Call,
@@ -97,7 +96,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
-		expect(host.receiveMessage({
+		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -114,7 +113,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = badOrigin
 
-		expect(host.receiveMessage({
+		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -131,7 +130,7 @@ describe("crosscall host", () => {
 		const host = new Host({callee, permissions, shims})
 		const origin = goodOrigin
 
-		expect(host.receiveMessage({
+		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,
@@ -142,7 +141,7 @@ describe("crosscall host", () => {
 			origin
 		})).rejects.toBeDefined()
 
-		expect(host.receiveMessage({
+		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
 				signal: Signal.Call,

@@ -44,7 +44,7 @@ export default class Host<gCallee extends Callee = Callee> {
 		this.shims.removeEventListener("message", handleMessageEvent)
 	}
 
-	async receiveMessage<gMessage extends Message = Message>({message, origin}: {
+	protected async receiveMessage<gMessage extends Message = Message>({message, origin}: {
 		message: gMessage
 		origin: string
 	}) {
