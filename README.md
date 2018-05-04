@@ -5,12 +5,16 @@
 // host iframe
 
 const host = new Host({
+
+	// object with async functionality to be exposed
 	callee: {
 		testTopic: {
 			async test1(x) { return x },
 			async test2(x) { return x + 1 }
 		}
 	},
+
+	// each client origin gets its own permission set for callee access
 	permissions: [{
 		origin: /^https:\/\/alpha.egg/,
 		allowed: {
