@@ -5,7 +5,7 @@
 		"outDir": "dist",
 		"target": "es5",
 		"lib": ["es6", "dom"],
-		"module": "commonjs",
+		"module": "umd",
 		"moduleResolution": "node",
 		"experimentalDecorators": true,
 		"noImplicitAny": true,
