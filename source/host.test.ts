@@ -2,14 +2,14 @@
 import {makeHostOptions, TestHost as Host} from "./testing"
 import {
 	Callee,
-	Permission,
-	HostShims,
 	Signal,
 	Message,
-	HandshakeRequest,
-	HandshakeResponse,
+	HostShims,
+	Permission,
 	CallRequest,
-	CallResponse
+	CallResponse,
+	HandshakeRequest,
+	HandshakeResponse
 } from "./interfaces"
 
 const goodOrigin = "https://alpha.egg"
@@ -69,7 +69,8 @@ describe("crosscall host", () => {
 			origin
 		})
 
-		const [call1message, call1origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[1]
+		const [call1message, call1origin] = <[CallResponse<number>, string]>shims
+			.postMessage.mock.calls[1]
 		expect(call1message.associate).toBe(123)
 		expect(call1origin).toBe(origin)
 		expect(call1message.result).toBe(5)
@@ -85,7 +86,8 @@ describe("crosscall host", () => {
 			origin
 		})
 
-		const [call2message, call2origin] = <[CallResponse<number>, string]>shims.postMessage.mock.calls[2]
+		const [call2message, call2origin] = <[CallResponse<number>, string]>shims
+			.postMessage.mock.calls[2]
 		expect(call2message.associate).toBe(124)
 		expect(call2origin).toBe(origin)
 		expect(call2message.result).toBe(6)

@@ -1,9 +1,7 @@
 
 import error from "./error"
-
 import {
 	Id,
-	errtag,
 	Callee,
 	Signal,
 	Allowed,
@@ -44,7 +42,10 @@ export default class Host<gCallee extends Callee = Callee> {
 		this.shims.removeEventListener("message", handleMessageEvent)
 	}
 
-	protected async receiveMessage<gMessage extends Message = Message>({message, origin}: {
+	protected async receiveMessage<gMessage extends Message = Message>({
+		message,
+		origin
+	}: {
 		message: gMessage
 		origin: string
 	}) {
@@ -66,10 +67,14 @@ export default class Host<gCallee extends Callee = Callee> {
 	}
 
 	private readonly handleMessageEvent = async({
-		origin, data: message
+		origin,
+		data: message
 	}: MessageEvent) => this.receiveMessage({origin, message})
 
-	private sendMessage<gMessage extends Message = Message>(message: gMessage, origin: string): Id {
+	private sendMessage<gMessage extends Message = Message>(
+		message: gMessage,
+		origin: string
+	): Id {
 		const {postMessage} = this.shims
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
@@ -79,9 +84,8 @@ export default class Host<gCallee extends Callee = Callee> {
 
 	private readonly messageHandlers: HostMessageHandlers = {
 
-		[Signal.Handshake]: async({
-			message, origin, permission
-		}: HandleMessageParams<HandshakeRequest>): Promise<void> => {
+		[Signal.Handshake]: async({message, origin, permission}:
+		HandleMessageParams<HandshakeRequest>): Promise<void> => {
 			const {allowed} = permission
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.Handshake,
@@ -90,9 +94,8 @@ export default class Host<gCallee extends Callee = Callee> {
 			}, origin)
 		},
 
-		[Signal.Call]: async({
-			message, origin, permission
-		}: HandleMessageParams<CallRequest>): Promise<void> => {
+		[Signal.Call]: async({message, origin, permission}:
+		HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
 			const {allowed} = permission

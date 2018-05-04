@@ -1,7 +1,7 @@
 
-import {Callee, Message} from "./interfaces"
-import Client from "./client"
 import Host from "./host"
+import Client from "./client"
+import {Callee, Message} from "./interfaces"
 
 export interface TestCallee extends Callee {
 	testTopic: {
@@ -52,7 +52,8 @@ export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
 	}
 }
 
-export class TestClient<gCallee extends Callee = Callee> extends Client<gCallee> {
+export class TestClient<gCallee extends Callee = Callee> extends
+Client<gCallee> {
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
 		message: gMessage
 		origin: string

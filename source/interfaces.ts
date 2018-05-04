@@ -1,6 +1,4 @@
 
-export const errtag = "crosscall error -"
-
 export interface Message {
 	id?: Id
 	signal: Signal

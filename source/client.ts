@@ -1,9 +1,7 @@
 
 import error from "./error"
-
 import {
 	Id,
-	errtag,
 	Callee,
 	Signal,
 	Allowed,
