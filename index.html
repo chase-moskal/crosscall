@@ -17,12 +17,12 @@
 		<script>
 			require(["./dist/client"], ({default: Client, ...mod}) => {
 				(async() => {
-
-					const {origin} = window.location
+					const {origin, pathname} = window.location
+					const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
 
 					// create crosscall client
 					const client = new Client({
-						link: `${origin}/host.html`,
+						link: origin + dirname + "/host.html",
 						targetOrigin: origin
 					})
 
