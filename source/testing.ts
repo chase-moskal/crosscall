@@ -6,7 +6,7 @@ import {Callee, Message} from "./interfaces"
 export interface TestCallee extends Callee {
 	testTopic: {
 		test1(x: number): Promise<number>
-		test2(x: number): Promise<number>
+		test2(x: number): number
 	}
 }
 
@@ -27,7 +27,7 @@ export const makeHostOptions = () => ({
 	callee: <TestCallee>{
 		testTopic: {
 			async test1(x: number) { return x },
-			async test2(x: number) { return x + 1 }
+			test2(x: number) { return x + 1 }
 		}
 	},
 	permissions: [{
