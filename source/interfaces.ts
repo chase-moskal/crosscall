@@ -87,7 +87,7 @@ export interface CalleeTopic {
 	[method: string]: CalleeMethod
 }
 
-export type CalleeMethod = (...args: any[]) => Promise<any>
+export type CalleeMethod = (...args: any[]) => any
 
 export interface HostShims {
 	postMessage: typeof window.parent.postMessage
