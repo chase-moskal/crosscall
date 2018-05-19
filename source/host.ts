@@ -1,5 +1,5 @@
 
-import error from "./error"
+import {error} from "./error"
 import {
 	Id,
 	Callee,
@@ -18,7 +18,7 @@ import {
 	HostMessageHandlers
 } from "./interfaces"
 
-export default class Host<gCallee extends Callee = Callee> {
+export class Host<gCallee extends Callee = Callee> {
 	private readonly callee: gCallee
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims

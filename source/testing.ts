@@ -1,6 +1,6 @@
 
-import Host from "./host"
-import Client from "./client"
+import {Host} from "./host"
+import {Client} from "./client"
 import {Callee, Message} from "./interfaces"
 
 export interface TestCallee extends Callee {

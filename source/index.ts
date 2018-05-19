@@ -1,4 +1,4 @@
 
-export {default as Host} from "./host"
-export {default as Client} from "./client"
+export {Host} from "./host"
+export {Client} from "./client"
 export * from "./interfaces"

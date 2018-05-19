@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.2-dev.1",
+	"version": "0.0.2-dev.2",
 	"description": "cross-origin postmessage rpc",
 	"main": "dist",
 	"types": "dist/index.d.ts",
@@ -11,6 +11,9 @@
 		"start": "http-server",
 		"test": "jest --verbose"
 	},
+	"files": [
+		"dist"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/chase-moskal/crosscall.git"

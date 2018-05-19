@@ -1,5 +1,5 @@
 
-import error from "./error"
+import {error} from "./error"
 import {
 	Id,
 	Callee,
@@ -21,7 +21,7 @@ import {
 	ClientMessageHandlers
 } from "./interfaces"
 
-export default class Client<gCallee extends Callee = Callee> {
+export class Client<gCallee extends Callee = Callee> {
 	private readonly hostOrigin: string
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()

@@ -1,6 +1,0 @@
-
-/.*
-/dist/*.test*
-/source
-/coverage
-/*.*
