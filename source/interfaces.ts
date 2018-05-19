@@ -134,7 +134,7 @@ export interface HostOptions<gCallee extends Callee = Callee> {
 
 export interface ClientOptions {
 	link: string
-	targetOrigin: string
+	hostOrigin: string
 	shims?: Partial<ClientShims>
 }
 

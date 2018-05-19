@@ -12,7 +12,7 @@ export interface TestCallee extends Callee {
 
 export const makeClientOptions = () => ({
 	link: "https://alpha.egg/crosscall-host.html",
-	targetOrigin: "https://alpha.egg",
+	hostOrigin: "https://alpha.egg",
 	shims: {
 		createElement: jest.fn<typeof document.createElement>(),
 		appendChild: jest.fn<typeof document.appendChild>(),

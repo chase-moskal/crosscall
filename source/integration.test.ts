@@ -8,7 +8,7 @@ import {
 	TestHost as Host
 } from "./testing"
 
-const nap = async() => sleep(10)
+const nap = async() => sleep(100)
 const sleep = async(ms: number) =>
 	new Promise((resolve, reject) => setTimeout(resolve, ms))
 

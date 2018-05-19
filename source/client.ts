@@ -34,29 +34,33 @@ export default class Client<gCallee extends Callee = Callee> {
 		this.resolveCallable = resolve
 	})
 
-	constructor({link, targetOrigin, shims = {}}: ClientOptions) {
-		this.shims = {...defaultShims, ...shims}
-		this.hostOrigin = targetOrigin
+	constructor({link, hostOrigin, shims: inputShims = {}}: ClientOptions) {
+		const {handleMessageEvent} = this
+		const shims = {...defaultShims, ...inputShims}
+		Object.assign(this, {hostOrigin, shims})
 		this.preparePostMessage(link)
-		this.shims.addEventListener("message", this.handleMessageEvent, false)
+		shims.addEventListener("message", handleMessageEvent, false)
 	}
 
 	destructor() {
-		if (this.iframe) {
-			this.shims.removeChild(this.iframe)
+		const {iframe, shims, handleMessageEvent} = this
+		if (iframe) {
+			shims.removeChild(iframe)
 			this.iframe = null
 		}
-		this.shims.removeEventListener("message", this.handleMessageEvent)
+		shims.removeEventListener("message", handleMessageEvent)
 	}
 
 	private preparePostMessage(link: string) {
-		if (this.shims.postMessage) return
-		this.iframe = this.shims.createElement("iframe")
-		this.iframe.style.display = "none"
-		this.iframe.src = link
-		this.shims.appendChild(this.iframe)
-		this.shims.postMessage = this.iframe.contentWindow.postMessage.bind(
-			this.iframe.contentWindow
+		const {shims} = this
+		if (shims.postMessage) return
+		const iframe = shims.createElement("iframe")
+		iframe.style.display = "none"
+		iframe.src = link
+		Object.assign(this, {iframe})
+		shims.appendChild(iframe)
+		shims.postMessage = iframe.contentWindow.postMessage.bind(
+			iframe.contentWindow
 		)
 	}
 
@@ -67,13 +71,12 @@ export default class Client<gCallee extends Callee = Callee> {
 		message: gMessage
 		origin: string
 	}): Promise<void> {
+		const {hostOrigin, messageHandlers} = this
 
-		const {hostOrigin} = this
-
-		if (origin !== this.hostOrigin)
+		if (origin !== hostOrigin)
 			throw error(`message rejected from origin "${origin}"`)
 
-		const handler = this.messageHandlers[message.signal]
+		const handler = messageHandlers[message.signal]
 		if (!handler)
 			throw error(`unknown message signal ${message.signal}`)
 
@@ -94,10 +97,10 @@ export default class Client<gCallee extends Callee = Callee> {
 	}
 
 	private sendMessage(message: Message): Id {
-		const {iframe, hostOrigin} = this
+		const {iframe, hostOrigin, shims} = this
 		const id = this.messageId++
 		const payload: Message = {...message, id}
-		this.shims.postMessage(payload, hostOrigin)
+		shims.postMessage(payload, hostOrigin)
 		return id
 	}
 
@@ -115,11 +118,12 @@ export default class Client<gCallee extends Callee = Callee> {
 	}
 
 	private passResponseToRequest(response: Message & Associated): void {
-		const pending = this.requests.get(response.associate)
+		const {requests} = this
+		const pending = requests.get(response.associate)
 		if (!pending) throw error(`unknown response, id "${response.id}" `
 			+ `responding to "${response.associate}"`)
 		const {resolve, reject} = pending
-		this.requests.delete(response.associate)
+		requests.delete(response.associate)
 		if (response.signal === Signal.Error) reject((<ErrorMessage>response).error)
 		else resolve(response)
 	}

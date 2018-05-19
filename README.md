@@ -50,7 +50,7 @@
 	// create crosscall client
 	const client = new Client({
 		link: "http://localhost:8080/host.html",
-		targetOrigin: "http://localhost:8080"
+		hostOrigin: "http://localhost:8080"
 	})
 
 	// wait for the callable object to become available
