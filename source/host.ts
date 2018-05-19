@@ -78,30 +78,30 @@ export default class Host<gCallee extends Callee = Callee> {
 		const {postMessage} = this.shims
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
-		this.shims.postMessage(payload, origin)
+		postMessage(payload, origin)
 		return id
 	}
 
 	private readonly messageHandlers: HostMessageHandlers = {
 
-		[Signal.Handshake]: async({message, origin, permission}:
+		[Signal.HandshakeRequest]: async({message, origin, permission}:
 		HandleMessageParams<HandshakeRequest>): Promise<void> => {
 			const {allowed} = permission
 			this.sendMessage<HandshakeResponse>({
-				signal: Signal.Handshake,
+				signal: Signal.HandshakeResponse,
 				associate: message.id,
 				allowed
 			}, origin)
 		},
 
-		[Signal.Call]: async({message, origin, permission}:
+		[Signal.CallRequest]: async({message, origin, permission}:
 		HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
 			const {allowed} = permission
 			validateMethodPermission({allowed, topic, method, origin})
 			this.sendMessage<CallResponse>({
-				signal: Signal.Call,
+				signal: Signal.CallResponse,
 				associate: id,
 				result: await callee[topic][method](...params)
 			}, origin)

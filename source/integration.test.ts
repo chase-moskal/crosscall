@@ -58,8 +58,8 @@ describe("crosscall host/client integration", () => {
 		const {postMessage: hostPostMessage} = hostOptions.shims
 		const {postMessage: clientPostMessage} = clientOptions.shims
 		await nap()
-		expect(clientPostMessage.mock.calls[0][0].signal).toBe(Signal.Handshake)
-		expect(hostPostMessage.mock.calls[1][0].signal).toBe(Signal.Handshake)
+		expect(clientPostMessage.mock.calls[0][0].signal).toBe(Signal.HandshakeRequest)
+		expect(hostPostMessage.mock.calls[1][0].signal).toBe(Signal.HandshakeResponse)
 	})
 
 	test("callable resolves", async() => {

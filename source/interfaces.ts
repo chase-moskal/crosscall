@@ -6,11 +6,33 @@ export interface Message {
 
 export type Id = number
 
+/**
+ * SIGNAL ENUM
+ *  - types of messages transferred between client and host
+ */
 export const enum Signal {
+
+	/** indicates an error */
 	Error,
+
+	/** host broadcasts wakeup call when it finishes loading in the iframe */
 	Wakeup,
-	Handshake,
-	Call
+
+	/** client sends a handshake request when it hears the wakeup call */
+	HandshakeRequest,
+
+	/** host responds to the handshake, and communicates which functions are
+		allowed to it */
+	HandshakeResponse,
+
+	/** client wants to call functionality on the host's callee */
+	CallRequest,
+
+	/** host responds with the results of a client call */
+	CallResponse,
+
+	/** notification of an event taking place */
+	Event
 }
 
 /**
@@ -29,11 +51,11 @@ export interface ErrorMessage extends Message, Partial<Associated> {
 }
 
 export interface HandshakeRequest extends Message {
-	signal: Signal.Handshake
+	signal: Signal.HandshakeRequest
 }
 
 export interface CallRequest extends Message {
-	signal: Signal.Call
+	signal: Signal.CallRequest
 	topic: string
 	method: string
 	params: any[]
@@ -51,12 +73,12 @@ export interface Allowed {
 export type AllowedMethods = string[]
 
 export interface HandshakeResponse extends Message, Associated {
-	signal: Signal.Handshake
+	signal: Signal.HandshakeResponse
 	allowed: Allowed
 }
 
 export interface CallResponse<R = any> extends Message, Associated {
-	signal: Signal.Call
+	signal: Signal.CallResponse
 	result: R
 }
 

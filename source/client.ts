@@ -107,7 +107,7 @@ export default class Client<gCallee extends Callee = Callee> {
 		params: any[]
 	}): Promise<CallResponse> {
 		return this.request<CallResponse>(<CallRequest>{
-			signal: Signal.Call,
+			signal: Signal.CallRequest,
 			topic,
 			method,
 			params
@@ -142,7 +142,7 @@ export default class Client<gCallee extends Callee = Callee> {
 
 	private readonly messageHandlers: ClientMessageHandlers = {
 		[Signal.Wakeup]: async(message: Message): Promise<void> => {
-			const request: HandshakeRequest = {signal: Signal.Handshake}
+			const request: HandshakeRequest = {signal: Signal.HandshakeRequest}
 			const {allowed} = await this.request<HandshakeResponse>(request)
 			const callable = this.makeCallable(allowed)
 			if (!this.callableReady) {
@@ -150,10 +150,10 @@ export default class Client<gCallee extends Callee = Callee> {
 				this.callableReady = true
 			}
 		},
-		[Signal.Handshake]: async(response: HandshakeResponse): Promise<void> => {
+		[Signal.HandshakeResponse]: async(response: HandshakeResponse): Promise<void> => {
 			this.passResponseToRequest(response)
 		},
-		[Signal.Call]: async(response: CallResponse): Promise<void> => {
+		[Signal.CallResponse]: async(response: CallResponse): Promise<void> => {
 			this.passResponseToRequest(response)
 		}
 	}

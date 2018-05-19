@@ -6,12 +6,12 @@
 - **facilitates remote procedure calls between webpages**  
 	even if they are on different origins
 
-- **expose async functionality**  
+- **expose functionality**  
 	which other pages can call remotely  
-	with a seamless calling experience
+	with a seamless calling experience  
 
 - **great example: localstorage**  
-	you could expose an async adapter for `localStorage`  
+	you could expose an adapter for `localStorage`  
 	allowing access to a single localstorage from any domain  
 	— actually that's my next project, stay tuned
 
@@ -25,11 +25,11 @@
 	```js
 	const host = new Host({
 
-		// async functionality exposed for clients to call
+		// functionality exposed for clients to call
 		callee: {
 			testTopic: {
 				async test1(x) { return x },
-				async test2(x) { return x + 1 }
+				test2(x) { return x + 1 }
 			}
 		},
 
@@ -56,7 +56,7 @@
 	// wait for the callable object to become available
 	const {testTopic} = await client.callable
 
-	// seamlessly utilize the host's async functionality
+	// seamlessly utilize the host's functionality
 	const result1 = await testTopic.test1(4)
 	const result2 = await testTopic.test2(4)
 

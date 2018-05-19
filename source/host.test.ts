@@ -44,7 +44,7 @@ describe("crosscall host", () => {
 		const id = 123
 		const message: HandshakeRequest = {
 			id,
-			signal: Signal.Handshake
+			signal: Signal.HandshakeRequest
 		}
 		const origin = goodOrigin
 		await host.testReceiveMessage({message, origin})
@@ -61,7 +61,7 @@ describe("crosscall host", () => {
 		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
 				params: [5]
@@ -78,7 +78,7 @@ describe("crosscall host", () => {
 		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 124,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test2",
 				params: [5]
@@ -101,7 +101,7 @@ describe("crosscall host", () => {
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
 				params: [5]
@@ -118,7 +118,7 @@ describe("crosscall host", () => {
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
 				params: [5]
@@ -135,7 +135,7 @@ describe("crosscall host", () => {
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "000",
 				method: "test1",
 				params: [5]
@@ -146,7 +146,7 @@ describe("crosscall host", () => {
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
-				signal: Signal.Call,
+				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "000",
 				params: [5]
