@@ -101,11 +101,15 @@ export interface ClientMessageHandlers {
 	[key: string]: (message: Message) => Promise<void>
 }
 
-export type Callable<gCallee extends Callee = Callee> = {
-	[topic: string]: {
-		[method: string]: (...args: any[]) => Promise<any>
-	}
+export interface Callable {
+	[topic: string]: CallableTopic
 }
+
+export interface CallableTopic {
+	[method: string]: CallableMethod
+}
+
+export type CallableMethod = (...args: any[]) => Promise<any>
 
 export interface Callee {
 	[topic: string]: CalleeTopic
