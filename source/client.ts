@@ -6,9 +6,11 @@ import {
 	Signal,
 	Allowed,
 	Message,
+	Callable,
 	Associated,
 	ClientShims,
 	CallRequest,
+	CalleeTopic,
 	CallResponse,
 	ErrorMessage,
 	ClientOptions,
@@ -21,7 +23,7 @@ import {
 	ClientMessageHandlers
 } from "./interfaces"
 
-export class Client<gCallee extends Callee = Callee> {
+export class Client<gCallable extends Callable = Callable> {
 	private readonly hostOrigin: string
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()
@@ -30,7 +32,7 @@ export class Client<gCallee extends Callee = Callee> {
 	private callableReady = false
 	private resolveCallable: any
 
-	readonly callable = new Promise<gCallee>((resolve, reject) => {
+	readonly callable = new Promise<gCallable>((resolve, reject) => {
 		this.resolveCallable = resolve
 	})
 
@@ -128,8 +130,8 @@ export class Client<gCallee extends Callee = Callee> {
 		else resolve(response)
 	}
 
-	private makeCallable(allowed: Allowed): gCallee {
-		const callable = <gCallee>{}
+	private makeCallable(allowed: Allowed): gCallable {
+		const callable = <gCallable>{}
 		for (const topic of Object.keys(allowed)) {
 			const methods = allowed[topic]
 			const obj: any = {}
