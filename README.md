@@ -3,19 +3,19 @@
 
 `npm install crosscall`
 
-- **facilitates remote procedure calls between webpages**  
+- **facilitate remote procedure calls between webpages**  
 	even if they are on different origins
 
-- **expose functionality**  
+- **expose async functionality across pages**  
 	which other pages can call remotely  
 	with a seamless calling experience  
+	using iframe/postmessage under the hood  
 
 - **great example: localstorage**  
-	you could expose an adapter for `localStorage`  
+	a page can expose access to its `localStorage`  
 	allowing access to a single localstorage from any domain  
-	— actually that's my next project, stay tuned
 
-- [live demo](https://chasemoskal.com/crosscall/)
+- [**live demo**](https://chasemoskal.com/crosscall/)
 
 ## usage by example
 
@@ -23,13 +23,13 @@
 	see sourcecode [host.ts](./source/host.ts)
 
 	```js
-	const host = new Host({
+	const host = new crosscall.Host({
 
 		// functionality exposed for clients to call
 		callee: {
 			testTopic: {
 				async test1(x) { return x },
-				test2(x) { return x + 1 }
+				async test2(x) { return x + 1 }
 			}
 		},
 
@@ -48,7 +48,7 @@
 
 	```js
 	// create crosscall client
-	const client = new Client({
+	const client = new crosscall.Client({
 		link: "http://localhost:8080/host.html",
 		hostOrigin: "http://localhost:8080"
 	})
@@ -64,7 +64,7 @@
 	console.log(result2) //> 5
 	```
 
-## design
+## noteworthy design points
 
 - **seamless calling experience for the client**
 	- no more awful-to-maintain string literals:
@@ -72,7 +72,7 @@
 		// garbage
 		const result = await rpc.request("testTopic", "test1", [5])
 		```
-	- we want it to look like the real thing  
+	- crosscall feels like the real thing  
 	(yes even with the right typescript typings):
 		```js
 		// crosscall experience
@@ -82,3 +82,13 @@
 - **simple permissions system**
 	- can allow access differently for each origin, on a per-method basis
 	- both client and host will reject messages from untrusted origins
+
+	```typescript
+	// each client origin gets its own callee access permission
+	permissions: [{
+		origin: /^http:\/\/localhost:8080/,
+		allowed: {
+			testTopic: ["test1", "test2"]
+		}
+	}]
+	```
