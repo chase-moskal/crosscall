@@ -115,17 +115,17 @@ export class Client<
 	>(
 		message: gMessage
 	): Promise<gResponse> {
-		const id = this.sendMessage<gMessage>(message)
+		const id = await this.sendMessage<gMessage>(message)
 		return new Promise<gResponse>((resolve, reject) => {
 			this.requests.set(id, {resolve, reject})
 		})
 	}
 
-	private sendMessage<gMessage extends Message = Message>(message: gMessage): Id {
+	private async sendMessage<gMessage extends Message = Message>(message: gMessage): Promise<Id> {
 		const {iframe, hostOrigin, shims} = this
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
-		shims.postMessage(payload, hostOrigin)
+		await shims.postMessage(payload, hostOrigin)
 		return id
 	}
 
@@ -231,8 +231,10 @@ export class Client<
 		[Signal.CallResponse]: this.prepPasser(),
 		[Signal.EventListenResponse]: this.prepPasser(),
 		[Signal.EventUnlistenResponse]: this.prepPasser(),
-		[Signal.Event]: async(response: EventMessage): Promise<void> => {
-			const {listenerId} = response
+		[Signal.Event]: async(message: EventMessage): Promise<void> => {
+			const {listenerId, eventPayload} = message
+			const listener = this.listenerIdLookup.get(listenerId)
+			listener(eventPayload)
 		}
 	}
 }

@@ -80,7 +80,7 @@ describe("crosscall host/client integration", () => {
 		expect(result2).toBe(6)
 	})
 
-	test("events can be listened for", async() => {
+	test("client can listen for host events", async() => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
 		const eventPayload = {alpha: true}
 		const {testEvent} = await client.events

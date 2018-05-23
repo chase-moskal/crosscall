@@ -80,7 +80,7 @@ export class TestHost<
 	}
 
 	async testFireEvent(listenerId: number, event: any, origin: string) {
-		this.fireEvent(listenerId, event, origin)
+		return this.fireEvent(listenerId, event, origin)
 	}
 }
 

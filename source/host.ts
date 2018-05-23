@@ -91,19 +91,19 @@ export class Host<
 		data: message
 	}: MessageEvent) => this.receiveMessage({origin, message})
 
-	private sendMessage<gMessage extends Message = Message>(
+	private async sendMessage<gMessage extends Message = Message>(
 		message: gMessage,
 		origin: string
-	): Id {
+	): Promise<Id> {
 		const {postMessage} = this.shims
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
-		postMessage(payload, origin)
+		await postMessage(payload, origin)
 		return id
 	}
 
-	protected fireEvent(listenerId: number, eventPayload: any, origin: string) {
-		this.sendMessage<EventMessage>({
+	protected async fireEvent(listenerId: number, eventPayload: any, origin: string) {
+		return this.sendMessage<EventMessage>({
 			signal: Signal.Event,
 			listenerId,
 			eventPayload
