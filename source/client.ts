@@ -1,5 +1,6 @@
 
 import {error} from "./error"
+import {ListenerOrganizer} from "./listener-organizer"
 import {
 	Id,
 	Callee,
@@ -39,19 +40,18 @@ export class Client<
 	private readonly hostOrigin: string
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()
+	private readonly listenerOrganizer = new ListenerOrganizer()
 	private iframe: HTMLIFrameElement
 	private messageId = 0
 
 	private callableReady = false
 	private resolveCallable: any
-
 	readonly callable = new Promise<gCallable>((resolve, reject) => {
 		this.resolveCallable = resolve
 	})
 
 	private eventsReady = false
 	private resolveEvents: any
-
 	readonly events = new Promise<gEvents>((resolve, reject) => {
 		this.resolveEvents = resolve
 	})
@@ -86,6 +86,10 @@ export class Client<
 		)
 	}
 
+	private readonly handleMessageEvent = ({
+		origin, data: message
+	}: MessageEvent) => this.receiveMessage({message, origin})
+
 	protected async receiveMessage<gMessage extends Message = Message>({
 		message,
 		origin
@@ -104,10 +108,6 @@ export class Client<
 
 		handler(message)
 	}
-
-	private readonly handleMessageEvent = ({
-		origin, data: message
-	}: MessageEvent) => this.receiveMessage({message, origin})
 
 	private async request<
 		gMessage extends Message = Message,
@@ -169,18 +169,8 @@ export class Client<
 		return callable
 	}
 
-	private listenerLookup = new Map<Listener, number>()
-	private listenerIdLookup = new Map<number, Listener>()
-	private storeListener(listener: Listener, id: number) {
-		this.listenerLookup.set(listener, id)
-		this.listenerIdLookup.set(id, listener)
-	}
-	private unstoreListener(listener: Listener, id: number) {
-		this.listenerLookup.delete(listener)
-		this.listenerIdLookup.delete(id)
-	}
-
-	private makeEvents(allowedEvents: AllowedEvents) {
+	private makeEvents(allowedEvents: AllowedEvents): gEvents {
+		const {listenerOrganizer} = this
 		const events = <gEvents>{}
 		for (const eventName of allowedEvents) {
 			const event: ClientEventMediator = {
@@ -189,16 +179,16 @@ export class Client<
 						signal: Signal.EventListenRequest,
 						eventName
 					})
-					this.storeListener(listener, listenerId)
+					listenerOrganizer.add(listenerId, listener)
 				},
 				unlisten: async(listener) => {
-					const listenerId = this.listenerLookup.get(listener)
+					const listenerId = listenerOrganizer.ids.get(listener)
 					if (listenerId === undefined) throw error(`cannot unlisten to unknown listener`)
 					await this.request<EventUnlistenRequest>({
 						signal: Signal.EventUnlistenRequest,
 						listenerId
 					})
-					this.unstoreListener(listener, listenerId)
+					listenerOrganizer.remove(listenerId, listener)
 				}
 			}
 			events[eventName] = event
@@ -232,8 +222,9 @@ export class Client<
 		[Signal.EventListenResponse]: this.prepPasser(),
 		[Signal.EventUnlistenResponse]: this.prepPasser(),
 		[Signal.Event]: async(message: EventMessage): Promise<void> => {
+			const {listenerOrganizer} = this
 			const {listenerId, eventPayload} = message
-			const listener = this.listenerIdLookup.get(listenerId)
+			const listener = listenerOrganizer.listeners.get(listenerId)
 			listener(eventPayload)
 		}
 	}
