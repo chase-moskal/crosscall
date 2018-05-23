@@ -69,7 +69,7 @@ export interface EventListenRequest extends Message {
 	eventName: string
 }
 
-export interface EventListenResponse extends Message {
+export interface EventListenResponse extends ResponseMessage {
 	signal: Signal.EventListenResponse
 	listenerId: number
 }
@@ -79,8 +79,14 @@ export interface EventUnlistenRequest extends Message {
 	listenerId: number
 }
 
-export interface EventUnlistenResponse extends Message {
+export interface EventUnlistenResponse extends ResponseMessage {
 	signal: Signal.EventUnlistenResponse
+}
+
+export interface EventMessage extends Message {
+	signal: Signal.Event
+	listenerId: number
+	eventPayload: any
 }
 
 export interface PendingRequest {
@@ -95,19 +101,20 @@ export interface Allowed {
 export type AllowedMethods = string[]
 export type AllowedEvents = string[]
 
-export interface HandshakeResponse extends Message, Associated {
+export interface HandshakeResponse extends ResponseMessage {
 	signal: Signal.HandshakeResponse
 	allowed: Allowed
+	allowedEvents: AllowedEvents
 }
 
-export interface CallResponse<R = any> extends Message, Associated {
+export interface CallResponse<R = any> extends ResponseMessage {
 	signal: Signal.CallResponse
 	result: R
 }
 
 export interface Permission {
 	origin: RegExp
-	allowance: Allowed
+	allowed: Allowed
 	allowedEvents: string[]
 }
 
@@ -162,15 +169,31 @@ export interface ClientShims {
 
 export type Listener = (event: any) => void
 
-export interface Events {
+export interface HostEventMediator {
 	listen(listener: Listener): void
 	unlisten(listener: Listener): void
 }
 
-export interface HostOptions<gCallee extends Callee = Callee, gEvents = any> {
+export interface ClientEventMediator {
+	listen(listener: Listener): Promise<void>
+	unlisten(listener: Listener): Promise<void>
+}
+
+export interface HostEvents {
+	[eventName: string]: HostEventMediator
+}
+
+export interface ClientEvents {
+	[eventName: string]: ClientEventMediator
+}
+
+export interface HostOptions<
+	gCallee extends Callee = Callee,
+	gEvents extends HostEvents = HostEvents
+> {
 	callee: gCallee
-	events: gEvents
 	permissions: Permission[]
+	events?: gEvents
 	shims?: Partial<HostShims>
 }
 

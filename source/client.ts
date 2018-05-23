@@ -7,33 +7,53 @@ import {
 	Allowed,
 	Message,
 	Callable,
+	Listener,
 	Associated,
 	ClientShims,
 	CallRequest,
 	CalleeTopic,
 	CallResponse,
+	ClientEvents,
 	ErrorMessage,
+	EventMessage,
+	AllowedEvents,
 	ClientOptions,
 	PendingRequest,
 	ResponseMessage,
 	HandshakeRequest,
 	HandshakeResponse,
+	EventListenRequest,
+	ClientEventMediator,
 	HostMessageHandlers,
+	EventListenResponse,
 	HandleMessageParams,
+	EventUnlistenRequest,
+	EventUnlistenResponse,
 	ClientMessageHandlers
 } from "./interfaces"
 
-export class Client<gCallable extends Callable = Callable> {
+export class Client<
+	gCallable extends Callable = Callable,
+	gEvents extends ClientEvents = ClientEvents
+> {
 	private readonly hostOrigin: string
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()
 	private iframe: HTMLIFrameElement
 	private messageId = 0
+
 	private callableReady = false
 	private resolveCallable: any
 
 	readonly callable = new Promise<gCallable>((resolve, reject) => {
 		this.resolveCallable = resolve
+	})
+
+	private eventsReady = false
+	private resolveEvents: any
+
+	readonly events = new Promise<gEvents>((resolve, reject) => {
+		this.resolveEvents = resolve
 	})
 
 	constructor({link, hostOrigin, shims: inputShims = {}}: ClientOptions) {
@@ -89,19 +109,22 @@ export class Client<gCallable extends Callable = Callable> {
 		origin, data: message
 	}: MessageEvent) => this.receiveMessage({message, origin})
 
-	private async request<gResponse extends ResponseMessage = ResponseMessage>(
-		message: Message
+	private async request<
+		gMessage extends Message = Message,
+		gResponse extends ResponseMessage = ResponseMessage
+	>(
+		message: gMessage
 	): Promise<gResponse> {
-		const id = this.sendMessage(message)
+		const id = this.sendMessage<gMessage>(message)
 		return new Promise<gResponse>((resolve, reject) => {
-			this.requests.set(id, {resolve,reject})
+			this.requests.set(id, {resolve, reject})
 		})
 	}
 
-	private sendMessage(message: Message): Id {
+	private sendMessage<gMessage extends Message = Message>(message: gMessage): Id {
 		const {iframe, hostOrigin, shims} = this
 		const id = this.messageId++
-		const payload: Message = {...message, id}
+		const payload: gMessage = {...<any>message, id}
 		shims.postMessage(payload, hostOrigin)
 		return id
 	}
@@ -111,7 +134,7 @@ export class Client<gCallable extends Callable = Callable> {
 		method: string
 		params: any[]
 	}): Promise<CallResponse> {
-		return this.request<CallResponse>(<CallRequest>{
+		return this.request<CallRequest, CallResponse>({
 			signal: Signal.CallRequest,
 			topic,
 			method,
@@ -119,7 +142,7 @@ export class Client<gCallable extends Callable = Callable> {
 		})
 	}
 
-	private passResponseToRequest(response: Message & Associated): void {
+	private passResponseToRequest(response: ResponseMessage): void {
 		const {requests} = this
 		const pending = requests.get(response.associate)
 		if (!pending) throw error(`unknown response, id "${response.id}" `
@@ -146,21 +169,70 @@ export class Client<gCallable extends Callable = Callable> {
 		return callable
 	}
 
+	private listenerLookup = new Map<Listener, number>()
+	private listenerIdLookup = new Map<number, Listener>()
+	private storeListener(listener: Listener, id: number) {
+		this.listenerLookup.set(listener, id)
+		this.listenerIdLookup.set(id, listener)
+	}
+	private unstoreListener(listener: Listener, id: number) {
+		this.listenerLookup.delete(listener)
+		this.listenerIdLookup.delete(id)
+	}
+
+	private makeEvents(allowedEvents: AllowedEvents) {
+		const events = <gEvents>{}
+		for (const eventName of allowedEvents) {
+			const event: ClientEventMediator = {
+				listen: async(listener) => {
+					const {listenerId} = await this.request<EventListenRequest, EventListenResponse>({
+						signal: Signal.EventListenRequest,
+						eventName
+					})
+					this.storeListener(listener, listenerId)
+				},
+				unlisten: async(listener) => {
+					const listenerId = this.listenerLookup.get(listener)
+					if (listenerId === undefined) throw error(`cannot unlisten to unknown listener`)
+					await this.request<EventUnlistenRequest>({
+						signal: Signal.EventUnlistenRequest,
+						listenerId
+					})
+					this.unstoreListener(listener, listenerId)
+				}
+			}
+			events[eventName] = event
+		}
+		return events
+	}
+
+	private prepPasser = () => async(response: ResponseMessage): Promise<void> => {
+		this.passResponseToRequest(response)
+	}
+
 	private readonly messageHandlers: ClientMessageHandlers = {
 		[Signal.Wakeup]: async(message: Message): Promise<void> => {
-			const request: HandshakeRequest = {signal: Signal.HandshakeRequest}
-			const {allowed} = await this.request<HandshakeResponse>(request)
+			const {allowed,allowedEvents}
+				= await this.request<HandshakeRequest, HandshakeResponse>({
+					signal: Signal.HandshakeRequest
+				})
 			const callable = this.makeCallable(allowed)
 			if (!this.callableReady) {
 				this.resolveCallable(callable)
 				this.callableReady = true
 			}
+			const events = this.makeEvents(allowedEvents)
+			if (!this.eventsReady) {
+				this.resolveEvents(events)
+				this.eventsReady = true
+			}
 		},
-		[Signal.HandshakeResponse]: async(response: HandshakeResponse): Promise<void> => {
-			this.passResponseToRequest(response)
-		},
-		[Signal.CallResponse]: async(response: CallResponse): Promise<void> => {
-			this.passResponseToRequest(response)
+		[Signal.HandshakeResponse]: this.prepPasser(),
+		[Signal.CallResponse]: this.prepPasser(),
+		[Signal.EventListenResponse]: this.prepPasser(),
+		[Signal.EventUnlistenResponse]: this.prepPasser(),
+		[Signal.Event]: async(response: EventMessage): Promise<void> => {
+			const {listenerId} = response
 		}
 	}
 }

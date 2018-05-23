@@ -22,7 +22,7 @@ const makeBridgedSetup = () => {
 	hostOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
 		async(message: Message, origin: string) => {
 			await sleep(0)
-			client.testReceiveMessage({message, origin: goodOrigin})
+			await client.testReceiveMessage({message, origin: goodOrigin})
 		}
 	))
 
@@ -30,7 +30,7 @@ const makeBridgedSetup = () => {
 	clientOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
 		async(message: Message, origin: string) => {
 			await sleep(0)
-			host.testReceiveMessage({message, origin: goodOrigin})
+			await host.testReceiveMessage({message, origin: goodOrigin})
 		}
 	))
 
@@ -80,13 +80,14 @@ describe("crosscall host/client integration", () => {
 		expect(result2).toBe(6)
 	})
 
-	xtest("events can be listened for", async() => {
+	test("events can be listened for", async() => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
-		const event = {alpha: true}
+		const eventPayload = {alpha: true}
 		const {testEvent} = await client.events
 		let result
-		await testEvent.listen(Event => { result = event.alpha })
-		host.testFireEvent(event)
+		await testEvent.listen(event => { result = event.alpha })
+		await host.testFireEvent(0, eventPayload, goodOrigin)
+		await nap()
 		expect(result).toBe(true)
 	})
 })

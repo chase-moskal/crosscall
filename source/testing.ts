@@ -1,7 +1,15 @@
 
 import {Host} from "./host"
 import {Client} from "./client"
-import {Callee, Message, CalleeTopic, Callable} from "./interfaces"
+import {
+	Callee,
+	Message,
+	CalleeTopic,
+	Callable,
+	HostOptions,
+	ClientOptions,
+	HostEvents
+} from "./interfaces"
 
 export type TestListener = (value: number) => void
 
@@ -39,11 +47,18 @@ export const makeHostOptions = () => ({
 			test2(x: number) { return x + 1 }
 		}
 	},
+	events: {
+		testEvent: {
+			listen: <any>jest.fn(),
+			unlisten: <any>jest.fn()
+		}
+	},
 	permissions: [{
 		origin: /^https:\/\/alpha.egg$/i,
 		allowed: {
 			testTopic: ["test1", "test2"]
-		}
+		},
+		allowedEvents: ["testEvent"]
 	}],
 	shims: {
 		postMessage: jest.fn<typeof window.postMessage>(),
@@ -52,17 +67,26 @@ export const makeHostOptions = () => ({
 	}
 })
 
-export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
+export class TestHost<
+	gCallee extends Callee = Callee,
+	gEvents extends HostEvents = HostEvents
+> extends Host<gCallee> {
+
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
 		message: gMessage
 		origin: string
 	}) {
 		return this.receiveMessage(params)
 	}
+
+	async testFireEvent(listenerId: number, event: any, origin: string) {
+		this.fireEvent(listenerId, event, origin)
+	}
 }
 
-export class TestClient<gCallable extends Callable = any>
-extends Client<gCallable> {
+export class TestClient<
+	gCallable extends Callable = any
+>extends Client<gCallable> {
 
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
 		message: gMessage

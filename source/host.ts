@@ -6,33 +6,51 @@ import {
 	Signal,
 	Allowed,
 	Message,
+	Listener,
 	HostShims,
 	Permission,
+	HostEvents,
 	CallRequest,
 	HostOptions,
 	CallResponse,
 	ErrorMessage,
+	EventMessage,
+	AllowedEvents,
 	HandshakeRequest,
+	HostEventMediator,
 	HandshakeResponse,
 	EventListenRequest,
 	EventListenResponse,
 	HandleMessageParams,
-	HostMessageHandlers
+	HostMessageHandlers,
+	EventUnlistenRequest,
+	EventUnlistenResponse
 } from "./interfaces"
 
-export class Host<gCallee extends Callee = Callee> {
+export class Host<
+	gCallee extends Callee = Callee,
+	gEvents extends HostEvents = HostEvents
+> {
 	private readonly callee: gCallee
+	private readonly events: gEvents
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims
+	private listeners = new Map<number, {
+		listener: Listener
+		eventName: string
+	}>()
 	private messageId = 0
+	private listenerId = 0
 
 	constructor({
 		callee,
 		permissions,
+		events = <gEvents>{},
 		shims = {}
-	}: HostOptions<gCallee>) {
+	}: HostOptions<gCallee, gEvents>) {
 		this.shims = {...defaultShims, ...shims}
 		this.callee = callee
+		this.events = events
 		this.permissions = permissions
 		this.shims.addEventListener("message", this.handleMessageEvent, false)
 		this.sendMessage({signal: Signal.Wakeup}, "*")
@@ -84,15 +102,24 @@ export class Host<gCallee extends Callee = Callee> {
 		return id
 	}
 
+	protected fireEvent(listenerId: number, eventPayload: any, origin: string) {
+		this.sendMessage<EventMessage>({
+			signal: Signal.Event,
+			listenerId,
+			eventPayload
+		}, origin)
+	}
+
 	private readonly messageHandlers: HostMessageHandlers = {
 
 		[Signal.HandshakeRequest]: async({message, origin, permission}:
 		HandleMessageParams<HandshakeRequest>): Promise<void> => {
-			const {allowance} = permission
+			const {allowed, allowedEvents} = permission
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.HandshakeResponse,
 				associate: message.id,
-				allowed
+				allowed,
+				allowedEvents
 			}, origin)
 		},
 
@@ -100,7 +127,7 @@ export class Host<gCallee extends Callee = Callee> {
 		HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
-			const {allowance} = permission
+			const {allowed} = permission
 			validateMethodPermission({allowed, topic, method, origin})
 			this.sendMessage<CallResponse>({
 				signal: Signal.CallResponse,
@@ -109,11 +136,39 @@ export class Host<gCallee extends Callee = Callee> {
 			}, origin)
 		},
 
-		[Signal.Event]: async({message, origin, permission}:
+		[Signal.EventListenRequest]: async({message, origin, permission}:
 		HandleMessageParams<EventListenRequest>) => {
-			const {events} = this
-			const {eventName} = message
+			const {eventName, id: associate} = message
+			const {allowedEvents} = permission
+			validateEventPermission({eventName, allowedEvents, origin})
+			const {events, listeners} = this
+			const hostEventHandler = events[eventName]
+			const listenerId = this.listenerId++
+			const listener: Listener = event => {
+				this.fireEvent(listenerId, event, origin)
+			}
+			hostEventHandler.listen(listener)
+			this.listeners.set(listenerId, {listener, eventName})
+			this.sendMessage<EventListenResponse>({
+				signal: Signal.EventListenResponse,
+				associate,
+				listenerId
+			}, origin)
+		},
 
+		[Signal.EventUnlistenRequest]: async({message, origin, permission}:
+		HandleMessageParams<EventUnlistenRequest>) => {
+			const {events, listeners} = this
+			const {listenerId, id: associate} = message
+			const {listener, eventName} = this.listeners.get(listenerId)
+			const {allowedEvents} = permission
+			validateEventPermission({eventName, allowedEvents, origin})
+			const hostEventHandler = events[eventName]
+			hostEventHandler.unlisten(listener)
+			this.sendMessage<EventUnlistenResponse>({
+				signal: Signal.EventUnlistenResponse,
+				associate
+			}, origin)
 		}
 	}
 }
@@ -128,7 +183,7 @@ function getOriginPermission({origin, permissions}: {
 	origin: string
 	permissions: Permission[]
 }): Permission {
-	const permission = permissions.find(({origin: o, allowance}) => o.test(origin))
+	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
 	if (!permission) throw error(`no permission for origin "${origin}"`)
 	return permission
 }
@@ -145,9 +200,12 @@ function validateMethodPermission({allowed, topic, method, origin}: {
 		+ `origin "${origin}"`)
 }
 
-function validateEventPermission({allowed, topic, method, origin}: {
-	allowed: Allowed
+function validateEventPermission({eventName, allowedEvents, origin}: {
+	eventName: string
+	allowedEvents: AllowedEvents
 	origin: string
 }) {
-
+	const granted = allowedEvents.find(name => name === eventName) !== undefined
+	if (!granted) throw error(`no permission for eventName "${eventName}" for`
+		+ ` origin "${origin}"`)
 }
