@@ -14,6 +14,8 @@ import {
 	ErrorMessage,
 	HandshakeRequest,
 	HandshakeResponse,
+	EventListenRequest,
+	EventListenResponse,
 	HandleMessageParams,
 	HostMessageHandlers
 } from "./interfaces"
@@ -86,7 +88,7 @@ export class Host<gCallee extends Callee = Callee> {
 
 		[Signal.HandshakeRequest]: async({message, origin, permission}:
 		HandleMessageParams<HandshakeRequest>): Promise<void> => {
-			const {allowed} = permission
+			const {allowance} = permission
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.HandshakeResponse,
 				associate: message.id,
@@ -98,13 +100,20 @@ export class Host<gCallee extends Callee = Callee> {
 		HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
-			const {allowed} = permission
+			const {allowance} = permission
 			validateMethodPermission({allowed, topic, method, origin})
 			this.sendMessage<CallResponse>({
 				signal: Signal.CallResponse,
 				associate: id,
 				result: await callee[topic][method](...params)
 			}, origin)
+		},
+
+		[Signal.Event]: async({message, origin, permission}:
+		HandleMessageParams<EventListenRequest>) => {
+			const {events} = this
+			const {eventName} = message
+
 		}
 	}
 }
@@ -119,7 +128,7 @@ function getOriginPermission({origin, permissions}: {
 	origin: string
 	permissions: Permission[]
 }): Permission {
-	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
+	const permission = permissions.find(({origin: o, allowance}) => o.test(origin))
 	if (!permission) throw error(`no permission for origin "${origin}"`)
 	return permission
 }
@@ -134,4 +143,11 @@ function validateMethodPermission({allowed, topic, method, origin}: {
 	const granted = methods && methods.find(m => m === method)
 	if (!granted) throw error(`no permission for method "${topic}.${method}" for `
 		+ `origin "${origin}"`)
+}
+
+function validateEventPermission({allowed, topic, method, origin}: {
+	allowed: Allowed
+	origin: string
+}) {
+
 }

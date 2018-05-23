@@ -31,8 +31,11 @@ export const enum Signal {
 	/** host responds with the results of a client call */
 	CallResponse,
 
-	/** notification of an event taking place */
-	Event
+	Event,
+	EventListenRequest,
+	EventListenResponse,
+	EventUnlistenRequest,
+	EventUnlistenResponse
 }
 
 /**
@@ -61,6 +64,25 @@ export interface CallRequest extends Message {
 	params: any[]
 }
 
+export interface EventListenRequest extends Message {
+	signal: Signal.EventListenRequest
+	eventName: string
+}
+
+export interface EventListenResponse extends Message {
+	signal: Signal.EventListenResponse
+	listenerId: number
+}
+
+export interface EventUnlistenRequest extends Message {
+	signal: Signal.EventUnlistenRequest
+	listenerId: number
+}
+
+export interface EventUnlistenResponse extends Message {
+	signal: Signal.EventUnlistenResponse
+}
+
 export interface PendingRequest {
 	resolve: any
 	reject: any
@@ -71,6 +93,7 @@ export interface Allowed {
 }
 
 export type AllowedMethods = string[]
+export type AllowedEvents = string[]
 
 export interface HandshakeResponse extends Message, Associated {
 	signal: Signal.HandshakeResponse
@@ -84,7 +107,8 @@ export interface CallResponse<R = any> extends Message, Associated {
 
 export interface Permission {
 	origin: RegExp
-	allowed: Allowed
+	allowance: Allowed
+	allowedEvents: string[]
 }
 
 export interface HandleMessageParams<gMessage extends Message = Message> {
@@ -136,8 +160,16 @@ export interface ClientShims {
 	postMessage: typeof window.postMessage
 }
 
-export interface HostOptions<gCallee extends Callee = Callee> {
+export type Listener = (event: any) => void
+
+export interface Events {
+	listen(listener: Listener): void
+	unlisten(listener: Listener): void
+}
+
+export interface HostOptions<gCallee extends Callee = Callee, gEvents = any> {
 	callee: gCallee
+	events: gEvents
 	permissions: Permission[]
 	shims?: Partial<HostShims>
 }
@@ -146,19 +178,4 @@ export interface ClientOptions {
 	link: string
 	hostOrigin: string
 	shims?: Partial<ClientShims>
-}
-
-export interface AsyncStorage {
-
-	// standard methods
-	clear(): Promise<void>
-	getItem(key: string): Promise<string>
-	key(index: number): Promise<string>
-	removeItem(key: string): Promise<void>
-	setItem(key: string): Promise<void>
-
-	// non-standard
-	getKeys(): Promise<string[]>
-	listen(listener: (e: any) => void): Promise<number>
-	unlisten(id: number): Promise<void>
 }

@@ -1,7 +1,7 @@
 
-# CROSSCALL <br/> cross-origin postmessage rpc
+# c r o s s c a l l <br/> postmessage rpc across origins
 
-`npm install crosscall`
+**`npm install crosscall`**
 
 - **facilitate remote procedure calls between webpages**  
 	even if they are on different origins
@@ -92,3 +92,60 @@
 		}
 	}]
 	```
+
+## concept event system
+
+```js
+// create crosscall client
+const client = new crosscall.Client({
+	link: "http://localhost:8080/host.html",
+	hostOrigin: "http://localhost:8080"
+})
+
+// wait for the callable object to become available
+const {testTopic} = await client.callable
+const {testEvent} = await client.events
+
+// seamlessly utilize the host's functionality
+const result1 = await testTopic.test1(4)
+const result2 = await testTopic.test2(4)
+
+testEvent.listen(() => console.log("testEvent"))
+
+console.log(result1) //> 4
+console.log(result2) //> 5
+```
+
+```js
+
+const host = new crosscall.Host({
+
+	// functionality exposed for clients to call
+	callee: {
+		testTopic: {
+			async test1(x) { return x },
+			async test2(x) { return x + 1 }
+		}
+	},
+
+	// events available for the client to listen for
+	events: {
+		testExplosion: {
+			listen(listener) {
+				window.addEventListener("explosion", listener)
+			}
+			unlisten(listener) {
+				window.removeEventListener("explosion", listener)
+			}
+		}
+	},
+
+	// each client origin gets its own callee access permission
+	permissions: [{
+		origin: /^http:\/\/localhost:8080/,
+		allowed: {
+			testTopic: ["test1", "test2"]
+		}
+	}]
+})
+```

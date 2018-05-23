@@ -3,10 +3,19 @@ import {Host} from "./host"
 import {Client} from "./client"
 import {Callee, Message, CalleeTopic, Callable} from "./interfaces"
 
+export type TestListener = (value: number) => void
+
 export interface TestCallee extends Callee {
 	testTopic: {
 		test1(x: number): Promise<number>
 		test2(x: number): number
+	}
+}
+
+export interface TestCallable extends Callable {
+	testTopic: {
+		test1(x: number): Promise<number>
+		test2(x: number): Promise<number>
 	}
 }
 
