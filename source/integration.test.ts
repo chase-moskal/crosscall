@@ -1,5 +1,5 @@
 
-import {Message, Signal} from "./interfaces"
+import {Message, Signal, Listener} from "./interfaces"
 import {
 	makeClientOptions,
 	makeHostOptions,
@@ -85,9 +85,13 @@ describe("crosscall host/client integration", () => {
 		const eventPayload = {alpha: true}
 		const {testEvent} = await client.events
 		let result
-		await testEvent.listen(event => { result = event.alpha })
+		const listener: Listener = event => { result = event.alpha }
+		await testEvent.listen(listener)
 		await host.testFireEvent(0, eventPayload, goodOrigin)
-		await nap()
 		expect(result).toBe(true)
+		result = false
+		await testEvent.unlisten(listener)
+		await host.testFireEvent(0, eventPayload, goodOrigin)
+		expect(result).toBe(false)
 	})
 })
