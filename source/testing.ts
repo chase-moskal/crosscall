@@ -8,6 +8,7 @@ import {
 	Callable,
 	HostOptions,
 	ClientOptions,
+	ClientEvents,
 	HostEvents
 } from "./interfaces"
 
@@ -94,4 +95,42 @@ export class TestClient<
 	}): Promise<void> {
 		return this.receiveMessage(params)
 	}
+}
+
+
+export const nap = async() => sleep(100)
+export const sleep = async(ms: number) =>
+	new Promise((resolve, reject) => setTimeout(resolve, ms))
+
+export const goodOrigin = "https://alpha.egg"
+export const badOrigin = "https://beta.bad"
+
+export const makeBridgedSetup = () => {
+	const clientOptions = makeClientOptions()
+	const hostOptions = makeHostOptions()
+
+	let client: TestClient<TestCallable>
+	let host: TestHost<TestCallee>
+
+	// route host output to client input
+	hostOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
+		async(message: Message, origin: string) => {
+			await sleep(0)
+			await client.testReceiveMessage({message, origin: goodOrigin})
+		}
+	))
+
+	// route client output to host input
+	clientOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
+		async(message: Message, origin: string) => {
+			await sleep(0)
+			await host.testReceiveMessage({message, origin: goodOrigin})
+		}
+	))
+
+	// client created first, the way iframes work
+	client = new TestClient<TestCallable>(clientOptions)
+	host = new TestHost(hostOptions)
+
+	return {client, host, clientOptions, hostOptions}
 }

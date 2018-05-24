@@ -225,7 +225,8 @@ export class Client<
 			const {listenerOrganizer} = this
 			const {listenerId, eventPayload} = message
 			const listener = listenerOrganizer.listeners.get(listenerId)
-			listener(eventPayload)
+			// if (!listener) throw error(`listener not found "${listenerId}"`)
+			if (listener) listener(eventPayload)
 		}
 	}
 }

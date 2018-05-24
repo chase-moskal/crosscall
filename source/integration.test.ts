@@ -1,45 +1,16 @@
 
 import {Message, Signal, Listener} from "./interfaces"
 import {
-	makeClientOptions,
-	makeHostOptions,
+	nap,
+	TestHost,
+	goodOrigin,
 	TestCallee,
-	TestClient as Client,
-	TestHost as Host
+	TestClient,
+	TestCallable,
+	makeHostOptions,
+	makeBridgedSetup,
+	makeClientOptions
 } from "./testing"
-
-const nap = async() => sleep(100)
-const sleep = async(ms: number) =>
-	new Promise((resolve, reject) => setTimeout(resolve, ms))
-
-const goodOrigin = "https://alpha.egg"
-
-const makeBridgedSetup = () => {
-	const clientOptions = makeClientOptions()
-	const hostOptions = makeHostOptions()
-
-	// route host output to client input
-	hostOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
-		async(message: Message, origin: string) => {
-			await sleep(0)
-			await client.testReceiveMessage({message, origin: goodOrigin})
-		}
-	))
-
-	// route client output to host input
-	clientOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
-		async(message: Message, origin: string) => {
-			await sleep(0)
-			await host.testReceiveMessage({message, origin: goodOrigin})
-		}
-	))
-
-	// client created first, the way iframes work
-	const client = new Client<TestCallee>(clientOptions)
-	const host = new Host(hostOptions)
-
-	return {client, host, clientOptions, hostOptions}
-}
 
 describe("crosscall host/client integration", () => {
 
@@ -80,7 +51,7 @@ describe("crosscall host/client integration", () => {
 		expect(result2).toBe(6)
 	})
 
-	test("client can listen for host events", async() => {
+	test("client can listen and unlisten to host events", async() => {
 		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
 		const eventPayload = {alpha: true}
 		const {testEvent} = await client.events
@@ -92,6 +63,7 @@ describe("crosscall host/client integration", () => {
 		result = false
 		await testEvent.unlisten(listener)
 		await host.testFireEvent(0, eventPayload, goodOrigin)
+		await nap()
 		expect(result).toBe(false)
 	})
 })
