@@ -49,6 +49,7 @@ export class Host<
 		shims = {}
 	}: HostOptions<gCallee, gEvents>) {
 		this.shims = {...defaultShims, ...shims}
+		if (!this.shims.postMessage) throw error(`crosscall host must be loaded via iframe`)
 		this.callee = callee
 		this.events = events
 		this.permissions = permissions
@@ -174,7 +175,10 @@ export class Host<
 }
 
 const defaultShims: HostShims = {
-	postMessage: window.parent.postMessage.bind(window.parent),
+	postMessage: (() => (window === window.parent)
+		? undefined
+		: window.parent.postMessage.bind(window.parent)
+	)(),
 	addEventListener: window.addEventListener.bind(window),
 	removeEventListener: window.removeEventListener.bind(window)
 }
