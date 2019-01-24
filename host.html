@@ -7,9 +7,9 @@
 	<body>
 		<script src="node_modules/requirejs/require.js"></script>
 		<script>
-			require(["./dist/host"], ({default: Host, ...mod}) => {
+			require(["./dist/host"], ({default: CrosscallHost, ...mod}) => {
 
-				const host = new Host({
+				const crosscallHost = new CrosscallHost({
 
 					// functionality exposed for clients to call
 					callee: {

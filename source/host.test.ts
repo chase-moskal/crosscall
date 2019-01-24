@@ -3,6 +3,7 @@ import {makeHostOptions, TestHost as Host} from "./testing"
 import {
 	Signal,
 	Message,
+	Permission,
 	CallRequest,
 	CallResponse,
 	HandshakeRequest,

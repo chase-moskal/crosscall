@@ -1,6 +1,6 @@
 
-import {error} from "./error"
-import {ListenerOrganizer} from "./listener-organizer"
+import error from "./error"
+import ListenerOrganizer from "./listener-organizer"
 import {
 	Id,
 	Signal,
@@ -26,7 +26,7 @@ import {
 	ClientMessageHandlers
 } from "./interfaces"
 
-export class Client<
+export default class Client<
 	gCallable extends Callable = Callable,
 	gEvents extends ClientEvents = ClientEvents
 > {
@@ -80,7 +80,8 @@ export class Client<
 	}
 
 	private readonly handleMessageEvent = ({
-		origin, data: message
+		origin,
+		data: message
 	}: MessageEvent) => this.receiveMessage({message, origin})
 
 	protected async receiveMessage<gMessage extends Message = Message>({
@@ -195,7 +196,7 @@ export class Client<
 
 	private readonly messageHandlers: ClientMessageHandlers = {
 		[Signal.Wakeup]: async(message: Message): Promise<void> => {
-			const {allowed,allowedEvents}
+			const {allowed, allowedEvents}
 				= await this.request<HandshakeRequest, HandshakeResponse>({
 					signal: Signal.HandshakeRequest
 				})

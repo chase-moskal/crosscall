@@ -1,7 +1,7 @@
 
 import {Listener} from "./interfaces"
 
-export class ListenerOrganizer {
+export default class ListenerOrganizer {
 	readonly ids = new Map<Listener, number>()
 	readonly listeners = new Map<number, Listener>()
 

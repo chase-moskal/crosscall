@@ -1,5 +1,5 @@
 
-import {error} from "./error"
+import error from "./error"
 import {
 	Id,
 	Callee,
@@ -26,7 +26,7 @@ import {
 	EventUnlistenResponse
 } from "./interfaces"
 
-export class Host<
+export default class Host<
 	gCallee extends Callee = Callee,
 	gEvents extends HostEvents = HostEvents
 > {

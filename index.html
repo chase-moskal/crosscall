@@ -19,19 +19,19 @@
 
 		<script src="node_modules/requirejs/require.js"></script>
 		<script>
-			require(["./dist/client"], ({default: Client, ...mod}) => {
+			require(["./dist/client"], ({default: CrosscallClient, ...mod}) => {
 				(async() => {
 					const {origin, pathname} = window.location
 					const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
 
 					// create crosscall client
-					const client = new Client({
+					const crosscallClient = new CrosscallClient({
 						link: origin + dirname + "/host.html",
 						hostOrigin: origin
 					})
 
 					// wait for the callable object to become available
-					const {testTopic} = await client.callable
+					const {testTopic} = await crosscallClient.callable
 
 					// seamlessly utilize the host's async functionality
 					const result1 = await testTopic.test1(4)
