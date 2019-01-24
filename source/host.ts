@@ -49,6 +49,7 @@ export default class Host<
 	}: HostOptions<gCallee, gEvents>) {
 		this.shims = {...defaultShims, ...shims}
 		if (!this.shims.postMessage) throw error(`crosscall host must be loaded via iframe`)
+		validatePermissionsAreWellFormed(permissions)
 		this.callee = callee
 		this.events = events
 		this.permissions = permissions
@@ -73,7 +74,7 @@ export default class Host<
 			const {permissions} = this
 			const permission = getOriginPermission({origin, permissions})
 			const handler = this.messageHandlers[message.signal]
-			const response = await handler({message, origin, permission})
+			await handler({message, origin, permission})
 		}
 		catch (error) {
 			const errorMessage: ErrorMessage = {
@@ -189,6 +190,19 @@ function getOriginPermission({origin, permissions}: {
 	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
 	if (!permission) throw error(`no permission for origin "${origin}"`)
 	return permission
+}
+
+function validatePermissionsAreWellFormed(permissions: Permission[]) {
+	for (const permission of permissions) {
+
+		if (typeof permission.allowed !== "object")
+			throw error(`badly formed permission for ${permission.origin}, invalid `
+				+ `'allowed' object`)
+
+		if (!Array.isArray(permission.allowedEvents))
+			throw error(`badly formed permission for ${permission.origin}, invalid `
+				+ `'allowedEvents' array`)
+	}
 }
 
 function validateMethodPermission({allowed, topic, method, origin}: {

@@ -152,4 +152,23 @@ describe("crosscall host", () => {
 			origin
 		})).rejects.toBeDefined()
 	})
+
+	it("throws an error when permissions are ill-defined", async() => {
+		const {callee, permissions, shims} = makeHostOptions()
+
+		const overridePermissions = (override: Partial<Permission>) =>
+			permissions.map(permission => ({...permission, ...override}))
+
+		expect(() => new Host({
+			callee,
+			shims,
+			permissions: overridePermissions({allowed: undefined})
+		})).toThrow()
+
+		expect(() => new Host({
+			callee,
+			shims,
+			permissions: overridePermissions({allowed: undefined})
+		})).toThrow()
+	})
 })
