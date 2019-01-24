@@ -4,11 +4,7 @@ import {Client} from "./client"
 import {
 	Callee,
 	Message,
-	CalleeTopic,
 	Callable,
-	HostOptions,
-	ClientOptions,
-	ClientEvents,
 	HostEvents
 } from "./interfaces"
 

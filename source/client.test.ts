@@ -2,9 +2,7 @@
 import {makeClientOptions, TestClient as Client} from "./testing"
 import {
 	Signal,
-	Message,
-	ClientShims,
-	ClientOptions
+	Message
 } from "./interfaces"
 
 const goodOrigin = "https://alpha.egg"

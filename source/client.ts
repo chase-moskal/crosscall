@@ -3,16 +3,12 @@ import {error} from "./error"
 import {ListenerOrganizer} from "./listener-organizer"
 import {
 	Id,
-	Callee,
 	Signal,
 	Allowed,
 	Message,
 	Callable,
-	Listener,
-	Associated,
 	ClientShims,
 	CallRequest,
-	CalleeTopic,
 	CallResponse,
 	ClientEvents,
 	ErrorMessage,
@@ -25,11 +21,8 @@ import {
 	HandshakeResponse,
 	EventListenRequest,
 	ClientEventMediator,
-	HostMessageHandlers,
 	EventListenResponse,
-	HandleMessageParams,
 	EventUnlistenRequest,
-	EventUnlistenResponse,
 	ClientMessageHandlers
 } from "./interfaces"
 

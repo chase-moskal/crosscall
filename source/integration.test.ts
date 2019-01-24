@@ -1,21 +1,15 @@
 
-import {Message, Signal, Listener} from "./interfaces"
+import {Signal, Listener} from "./interfaces"
 import {
 	nap,
-	TestHost,
 	goodOrigin,
-	TestCallee,
-	TestClient,
-	TestCallable,
-	makeHostOptions,
 	makeBridgedSetup,
-	makeClientOptions
 } from "./testing"
 
 describe("crosscall host/client integration", () => {
 
 	test("wakeup call from host is received by client", async() => {
-		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const {hostOptions, clientOptions} = makeBridgedSetup()
 		const {postMessage: hostPostMessage} = hostOptions.shims
 		const {postMessage: clientPostMessage} = clientOptions.shims
 		await nap()
@@ -25,7 +19,7 @@ describe("crosscall host/client integration", () => {
 	})
 
 	test("handshake is exchanged", async() => {
-		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const {hostOptions, clientOptions} = makeBridgedSetup()
 		const {postMessage: hostPostMessage} = hostOptions.shims
 		const {postMessage: clientPostMessage} = clientOptions.shims
 		await nap()
@@ -34,7 +28,7 @@ describe("crosscall host/client integration", () => {
 	})
 
 	test("callable resolves", async() => {
-		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const {client} = makeBridgedSetup()
 		const callable = await client.callable
 		expect(callable).toBeDefined()
 		expect(callable.testTopic).toBeDefined()
@@ -43,7 +37,7 @@ describe("crosscall host/client integration", () => {
 	})
 
 	test("end to end call requests", async() => {
-		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const {client} = makeBridgedSetup()
 		const {testTopic} = await client.callable
 		const result = await testTopic.test1(5)
 		expect(result).toBe(5)
@@ -52,7 +46,7 @@ describe("crosscall host/client integration", () => {
 	})
 
 	test("client can listen and unlisten to host events", async() => {
-		const {client, host, hostOptions, clientOptions} = makeBridgedSetup()
+		const {client, host} = makeBridgedSetup()
 		const eventPayload = {alpha: true}
 		const {testEvent} = await client.events
 		let result

@@ -1,11 +1,8 @@
 
 import {makeHostOptions, TestHost as Host} from "./testing"
 import {
-	Callee,
 	Signal,
 	Message,
-	HostShims,
-	Permission,
 	CallRequest,
 	CallResponse,
 	HandshakeRequest,

@@ -17,7 +17,6 @@ import {
 	EventMessage,
 	AllowedEvents,
 	HandshakeRequest,
-	HostEventMediator,
 	HandshakeResponse,
 	EventListenRequest,
 	EventListenResponse,
