@@ -116,7 +116,7 @@ export default class Client<
 	}
 
 	private async sendMessage<gMessage extends Message = Message>(message: gMessage): Promise<Id> {
-		const {iframe, hostOrigin, shims} = this
+		const {hostOrigin, shims} = this
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
 		await shims.postMessage(payload, hostOrigin)

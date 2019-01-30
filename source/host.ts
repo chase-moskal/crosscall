@@ -59,7 +59,6 @@ export default class Host<
 
 	deconstructor() {
 		const {handleMessageEvent} = this
-		const {removeEventListener} = this.shims
 		this.shims.removeEventListener("message", handleMessageEvent)
 	}
 
@@ -103,7 +102,11 @@ export default class Host<
 		return id
 	}
 
-	protected async fireEvent(listenerId: number, eventPayload: any, origin: string) {
+	protected async fireEvent(
+		listenerId: number,
+		eventPayload: any,
+		origin: string
+	) {
 		return this.sendMessage<EventMessage>({
 			signal: Signal.Event,
 			listenerId,
@@ -113,8 +116,9 @@ export default class Host<
 
 	private readonly messageHandlers: HostMessageHandlers = {
 
-		[Signal.HandshakeRequest]: async({message, origin, permission}:
-		HandleMessageParams<HandshakeRequest>): Promise<void> => {
+		[Signal.HandshakeRequest]: async({
+			message, origin, permission
+		}: HandleMessageParams<HandshakeRequest>): Promise<void> => {
 			const {allowed, allowedEvents} = permission
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.HandshakeResponse,
@@ -124,8 +128,9 @@ export default class Host<
 			}, origin)
 		},
 
-		[Signal.CallRequest]: async({message, origin, permission}:
-		HandleMessageParams<CallRequest>): Promise<void> => {
+		[Signal.CallRequest]: async({
+			message, origin, permission
+		}: HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
 			const {id, signal, topic, method, params} = message
 			const {allowed} = permission
@@ -137,19 +142,20 @@ export default class Host<
 			}, origin)
 		},
 
-		[Signal.EventListenRequest]: async({message, origin, permission}:
-		HandleMessageParams<EventListenRequest>) => {
+		[Signal.EventListenRequest]: async({
+			message, origin, permission
+		}: HandleMessageParams<EventListenRequest>) => {
+			const {events, listeners} = this
 			const {eventName, id: associate} = message
 			const {allowedEvents} = permission
 			validateEventPermission({eventName, allowedEvents, origin})
-			const {events, listeners} = this
 			const hostEventHandler = events[eventName]
 			const listenerId = this.listenerId++
 			const listener: Listener = event => {
 				this.fireEvent(listenerId, event, origin)
 			}
 			hostEventHandler.listen(listener)
-			this.listeners.set(listenerId, {listener, eventName})
+			listeners.set(listenerId, {listener, eventName})
 			this.sendMessage<EventListenResponse>({
 				signal: Signal.EventListenResponse,
 				associate,
@@ -157,11 +163,12 @@ export default class Host<
 			}, origin)
 		},
 
-		[Signal.EventUnlistenRequest]: async({message, origin, permission}:
-		HandleMessageParams<EventUnlistenRequest>) => {
+		[Signal.EventUnlistenRequest]: async({
+			message, origin, permission
+		}: HandleMessageParams<EventUnlistenRequest>) => {
 			const {events, listeners} = this
 			const {listenerId, id: associate} = message
-			const {listener, eventName} = this.listeners.get(listenerId)
+			const {listener, eventName} = listeners.get(listenerId)
 			const {allowedEvents} = permission
 			validateEventPermission({eventName, allowedEvents, origin})
 			const hostEventHandler = events[eventName]
