@@ -5,22 +5,27 @@ import {
 	Callee,
 	Message,
 	Callable,
-	HostEvents
+	HostOptions,
+	ClientOptions
 } from "./interfaces"
 
 export type TestListener = (value: number) => void
 
 export interface TestCallee extends Callee {
-	testTopic: {
-		test1(x: number): Promise<number>
-		test2(x: number): number
+	topics: {
+		testTopic: {
+			test1(x: number): Promise<number>
+			test2(x: number): number
+		}
 	}
 }
 
 export interface TestCallable extends Callable {
-	testTopic: {
-		test1(x: number): Promise<number>
-		test2(x: number): Promise<number>
+	topics: {
+		testTopic: {
+			test1(x: number): Promise<number>
+			test2(x: number): Promise<number>
+		}
 	}
 }
 
@@ -38,21 +43,23 @@ export const makeClientOptions = () => ({
 })
 
 export const makeHostOptions = () => ({
-	callee: <TestCallee>{
-		testTopic: {
-			async test1(x: number) { return x },
-			test2(x: number) { return x + 1 }
-		}
-	},
-	events: {
-		testEvent: {
-			listen: <any>jest.fn(),
-			unlisten: <any>jest.fn()
+	callee: {
+		topics: {
+			testTopic: {
+				async test1(x: number) { return x },
+				test2(x: number) { return x + 1 }
+			}
+		},
+		events: {
+			testEvent: {
+				listen: <any>jest.fn(),
+				unlisten: <any>jest.fn()
+			}
 		}
 	},
 	permissions: [{
 		origin: /^https:\/\/alpha.egg$/i,
-		allowed: {
+		allowedTopics: {
 			testTopic: ["test1", "test2"]
 		},
 		allowedEvents: ["testEvent"]
@@ -64,10 +71,7 @@ export const makeHostOptions = () => ({
 	}
 })
 
-export class TestHost<
-	gCallee extends Callee = Callee,
-	gEvents extends HostEvents = HostEvents
-> extends Host<gCallee> {
+export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
 
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
 		message: gMessage
@@ -126,7 +130,7 @@ export const makeBridgedSetup = () => {
 
 	// client created first, the way iframes work
 	client = new TestClient<TestCallable>(clientOptions)
-	host = new TestHost(hostOptions)
+	host = new TestHost<TestCallee>(hostOptions)
 
 	return {client, host, clientOptions, hostOptions}
 }

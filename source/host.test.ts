@@ -162,13 +162,13 @@ describe("crosscall host", () => {
 		expect(() => new Host({
 			callee,
 			shims,
-			permissions: overridePermissions({allowed: undefined})
+			permissions: overridePermissions({allowedTopics: undefined})
 		})).toThrow()
 
 		expect(() => new Host({
 			callee,
 			shims,
-			permissions: overridePermissions({allowed: undefined})
+			permissions: overridePermissions({allowedTopics: undefined})
 		})).toThrow()
 	})
 })

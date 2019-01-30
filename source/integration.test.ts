@@ -31,14 +31,14 @@ describe("crosscall host/client integration", () => {
 		const {client} = makeBridgedSetup()
 		const callable = await client.callable
 		expect(callable).toBeDefined()
-		expect(callable.testTopic).toBeDefined()
-		expect(callable.testTopic).toHaveProperty("test1")
-		expect(callable.testTopic).toHaveProperty("test2")
+		expect(callable.topics.testTopic).toBeDefined()
+		expect(callable.topics.testTopic).toHaveProperty("test1")
+		expect(callable.topics.testTopic).toHaveProperty("test2")
 	})
 
 	test("end to end call requests", async() => {
 		const {client} = makeBridgedSetup()
-		const {testTopic} = await client.callable
+		const {testTopic} = (await client.callable).topics
 		const result = await testTopic.test1(5)
 		expect(result).toBe(5)
 		const result2 = await testTopic.test2(5)
@@ -48,7 +48,7 @@ describe("crosscall host/client integration", () => {
 	test("client can listen and unlisten to host events", async() => {
 		const {client, host} = makeBridgedSetup()
 		const eventPayload = {alpha: true}
-		const {testEvent} = await client.events
+		const {testEvent} = (await client.callable).events
 		let result
 		const listener: Listener = event => { result = event.alpha }
 		await testEvent.listen(listener)

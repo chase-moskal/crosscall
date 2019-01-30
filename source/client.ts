@@ -4,7 +4,7 @@ import ListenerOrganizer from "./listener-organizer"
 import {
 	Id,
 	Signal,
-	Allowed,
+	AllowedTopics,
 	Message,
 	Callable,
 	ClientShims,
@@ -26,10 +26,7 @@ import {
 	ClientMessageHandlers
 } from "./interfaces"
 
-export default class Client<
-	gCallable extends Callable = Callable,
-	gEvents extends ClientEvents = ClientEvents
-> {
+export default class Client<gCallable extends Callable = Callable> {
 	private readonly hostOrigin: string
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()
@@ -43,13 +40,11 @@ export default class Client<
 		this.resolveCallable = resolve
 	})
 
-	private eventsReady = false
-	private resolveEvents: any
-	readonly events = new Promise<gEvents>((resolve, reject) => {
-		this.resolveEvents = resolve
-	})
-
-	constructor({link, hostOrigin, shims: inputShims = {}}: ClientOptions) {
+	constructor({
+		link,
+		hostOrigin,
+		shims: inputShims = {}
+	}: ClientOptions) {
 		const {handleMessageEvent} = this
 		const shims = {...defaultShims, ...inputShims}
 		Object.assign(this, {hostOrigin, shims})
@@ -147,10 +142,16 @@ export default class Client<
 		else resolve(response)
 	}
 
-	private makeCallable(allowed: Allowed): gCallable {
-		const callable = <gCallable>{}
-		for (const topic of Object.keys(allowed)) {
-			const methods = allowed[topic]
+	private makeCallable(allowedTopics: AllowedTopics, allowedEvents: AllowedEvents): gCallable {
+
+		const callable = <gCallable>{
+			topics: {},
+			events: {}
+		}
+
+		// prepare topics
+		for (const topic of Object.keys(allowedTopics)) {
+			const methods = allowedTopics[topic]
 			const obj: any = {}
 			for (const method of methods) {
 				obj[method] = async(...params: any[]) => {
@@ -158,14 +159,11 @@ export default class Client<
 					return response.result
 				}
 			}
-			callable[topic] = obj
+			callable.topics[topic] = obj
 		}
-		return callable
-	}
 
-	private makeEvents(allowedEvents: AllowedEvents): gEvents {
+		// prepare events
 		const {listenerOrganizer} = this
-		const events = <gEvents>{}
 		for (const eventName of allowedEvents) {
 			const event: ClientEventMediator = {
 				listen: async(listener) => {
@@ -185,9 +183,11 @@ export default class Client<
 					listenerOrganizer.remove(listenerId, listener)
 				}
 			}
-			events[eventName] = event
+			callable.events[eventName] = event
 		}
-		return events
+
+		// return the whole callable object
+		return callable
 	}
 
 	private prepPasser = () => async(response: ResponseMessage): Promise<void> => {
@@ -196,19 +196,14 @@ export default class Client<
 
 	private readonly messageHandlers: ClientMessageHandlers = {
 		[Signal.Wakeup]: async(message: Message): Promise<void> => {
-			const {allowed, allowedEvents}
+			const {allowedTopics, allowedEvents}
 				= await this.request<HandshakeRequest, HandshakeResponse>({
 					signal: Signal.HandshakeRequest
 				})
-			const callable = this.makeCallable(allowed)
+			const callable = this.makeCallable(allowedTopics, allowedEvents)
 			if (!this.callableReady) {
 				this.resolveCallable(callable)
 				this.callableReady = true
-			}
-			const events = this.makeEvents(allowedEvents)
-			if (!this.eventsReady) {
-				this.resolveEvents(events)
-				this.eventsReady = true
 			}
 		},
 		[Signal.HandshakeResponse]: this.prepPasser(),

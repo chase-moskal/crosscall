@@ -94,7 +94,7 @@ export interface PendingRequest {
 	reject: any
 }
 
-export interface Allowed {
+export interface AllowedTopics {
 	[topic: string]: AllowedMethods
 }
 
@@ -103,7 +103,7 @@ export type AllowedEvents = string[]
 
 export interface HandshakeResponse extends ResponseMessage {
 	signal: Signal.HandshakeResponse
-	allowed: Allowed
+	allowedTopics: AllowedTopics
 	allowedEvents: AllowedEvents
 }
 
@@ -114,7 +114,7 @@ export interface CallResponse<R = any> extends ResponseMessage {
 
 export interface Permission {
 	origin: RegExp
-	allowed: Allowed
+	allowedTopics: AllowedTopics
 	allowedEvents: string[]
 }
 
@@ -133,7 +133,21 @@ export interface ClientMessageHandlers {
 }
 
 export interface Callable {
+	topics: CallableTopics
+	events: HostEvents
+}
+
+export interface Callee {
+	topics: CalleeTopics
+	events: ClientEvents
+}
+
+export interface CallableTopics {
 	[topic: string]: CallableTopic
+}
+
+export interface CalleeTopics {
+	[topic: string]: CalleeTopic
 }
 
 export interface CallableTopic {
@@ -141,10 +155,6 @@ export interface CallableTopic {
 }
 
 export type CallableMethod = (...args: any[]) => Promise<any>
-
-export interface Callee {
-	[topic: string]: CalleeTopic
-}
 
 export interface CalleeTopic {
 	[method: string]: CalleeMethod
@@ -187,13 +197,9 @@ export interface ClientEvents {
 	[eventName: string]: ClientEventMediator
 }
 
-export interface HostOptions<
-	gCallee extends Callee = Callee,
-	gEvents extends HostEvents = HostEvents
-> {
+export interface HostOptions<gCallee extends Callee = Callee> {
 	callee: gCallee
 	permissions: Permission[]
-	events?: gEvents
 	shims?: Partial<HostShims>
 }
 

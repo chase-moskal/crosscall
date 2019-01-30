@@ -4,7 +4,7 @@ import {
 	Id,
 	Callee,
 	Signal,
-	Allowed,
+	AllowedTopics,
 	Message,
 	Listener,
 	HostShims,
@@ -26,12 +26,9 @@ import {
 	EventUnlistenResponse
 } from "./interfaces"
 
-export default class Host<
-	gCallee extends Callee = Callee,
-	gEvents extends HostEvents = HostEvents
-> {
+export default class Host<gCallee extends Callee = Callee> {
 	private readonly callee: gCallee
-	private readonly events: gEvents
+	// private readonly events: gEvents
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims
 	private listeners = new Map<number, {
@@ -44,14 +41,14 @@ export default class Host<
 	constructor({
 		callee,
 		permissions,
-		events = <gEvents>{},
+		// events = <gEvents>{},
 		shims = {}
-	}: HostOptions<gCallee, gEvents>) {
+	}: HostOptions<gCallee>) {
 		this.shims = {...defaultShims, ...shims}
 		if (!this.shims.postMessage) throw error(`crosscall host must be loaded via iframe`)
 		validatePermissionsAreWellFormed(permissions)
 		this.callee = callee
-		this.events = events
+		// this.events = events
 		this.permissions = permissions
 		this.shims.addEventListener("message", this.handleMessageEvent, false)
 		this.sendMessage({signal: Signal.Wakeup}, "*")
@@ -119,11 +116,12 @@ export default class Host<
 		[Signal.HandshakeRequest]: async({
 			message, origin, permission
 		}: HandleMessageParams<HandshakeRequest>): Promise<void> => {
-			const {allowed, allowedEvents} = permission
+			const {allowedTopics: allowed, allowedEvents} = permission
+			const {id: associate} = message
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.HandshakeResponse,
-				associate: message.id,
-				allowed,
+				associate,
+				allowedTopics: allowed,
 				allowedEvents
 			}, origin)
 		},
@@ -132,24 +130,25 @@ export default class Host<
 			message, origin, permission
 		}: HandleMessageParams<CallRequest>): Promise<void> => {
 			const {callee} = this
-			const {id, signal, topic, method, params} = message
-			const {allowed} = permission
-			validateMethodPermission({allowed, topic, method, origin})
+			const {allowedTopics: allowed} = permission
+			const {id: associate, topic, method, params} = message
+			validateMethodPermission({allowedTopics: allowed, topic, method, origin})
+			const result = await callee.topics[topic][method](...params)
 			this.sendMessage<CallResponse>({
 				signal: Signal.CallResponse,
-				associate: id,
-				result: await callee[topic][method](...params)
+				associate,
+				result
 			}, origin)
 		},
 
 		[Signal.EventListenRequest]: async({
 			message, origin, permission
 		}: HandleMessageParams<EventListenRequest>) => {
-			const {events, listeners} = this
-			const {eventName, id: associate} = message
+			const {listeners, callee} = this
 			const {allowedEvents} = permission
+			const {eventName, id: associate} = message
 			validateEventPermission({eventName, allowedEvents, origin})
-			const hostEventHandler = events[eventName]
+			const hostEventHandler = callee.events[eventName]
 			const listenerId = this.listenerId++
 			const listener: Listener = event => {
 				this.fireEvent(listenerId, event, origin)
@@ -166,12 +165,12 @@ export default class Host<
 		[Signal.EventUnlistenRequest]: async({
 			message, origin, permission
 		}: HandleMessageParams<EventUnlistenRequest>) => {
-			const {events, listeners} = this
+			const {listeners, callee} = this
 			const {listenerId, id: associate} = message
 			const {listener, eventName} = listeners.get(listenerId)
 			const {allowedEvents} = permission
 			validateEventPermission({eventName, allowedEvents, origin})
-			const hostEventHandler = events[eventName]
+			const hostEventHandler = callee.events[eventName]
 			hostEventHandler.unlisten(listener)
 			this.sendMessage<EventUnlistenResponse>({
 				signal: Signal.EventUnlistenResponse,
@@ -194,7 +193,9 @@ function getOriginPermission({origin, permissions}: {
 	origin: string
 	permissions: Permission[]
 }): Permission {
-	const permission = permissions.find(({origin: o, allowed}) => o.test(origin))
+	const permission = permissions.find(
+		({origin: originRegex}) => originRegex.test(origin)
+	)
 	if (!permission) throw error(`no permission for origin "${origin}"`)
 	return permission
 }
@@ -202,7 +203,7 @@ function getOriginPermission({origin, permissions}: {
 function validatePermissionsAreWellFormed(permissions: Permission[]) {
 	for (const permission of permissions) {
 
-		if (typeof permission.allowed !== "object")
+		if (typeof permission.allowedTopics !== "object")
 			throw error(`badly formed permission for ${permission.origin}, invalid `
 				+ `'allowed' object`)
 
@@ -212,22 +213,22 @@ function validatePermissionsAreWellFormed(permissions: Permission[]) {
 	}
 }
 
-function validateMethodPermission({allowed, topic, method, origin}: {
-	allowed: Allowed
+function validateMethodPermission({allowedTopics, topic, method, origin}: {
 	topic: string
 	method: string
 	origin: string
+	allowedTopics: AllowedTopics
 }) {
-	const methods = allowed[topic]
+	const methods = allowedTopics[topic]
 	const granted = methods && methods.find(m => m === method)
 	if (!granted) throw error(`no permission for method "${topic}.${method}" for `
 		+ `origin "${origin}"`)
 }
 
 function validateEventPermission({eventName, allowedEvents, origin}: {
+	origin: string
 	eventName: string
 	allowedEvents: AllowedEvents
-	origin: string
 }) {
 	const granted = allowedEvents.find(name => name === eventName) !== undefined
 	if (!granted) throw error(`no permission for eventName "${eventName}" for`
