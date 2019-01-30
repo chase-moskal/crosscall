@@ -1,165 +1,115 @@
 
-# crosscall <br/> &nbsp;<small><em>postmessage rpc across origins</em></small>
+# crosscall
+
+*postmessage rpc across origins*
 
 **`npm install crosscall`**
 
 - **facilitate remote procedure calls between webpages**  
-	even if they are on different origins
+  even if they are on different origins  
 
 - **expose async functionality across pages**  
-	which other pages can call remotely  
-	with a seamless calling experience  
-	using iframe/postmessage under the hood  
+  which other pages can call remotely  
+  with a seamless calling experience  
+  using iframe/postmessage under the hood  
 
-- **great example: localstorage**  
-	a page can securely expose access to its `localStorage`  
-	allowing access to a single localstorage from any domain  
+- **use-case example: cross-origin token storage**  
+  a host page can allow other pages to use its localstorage  
 
 - [**live demo**](https://chasemoskal.com/crosscall/)
 
 ## usage by example
 
 - **host page, at "`https://localhost:8080/host.html`"**  
-	sourcecode [host.ts](./source/host.ts)
+  sourcecode [host.ts](./source/host.ts)
 
-	```js
-	// create crosscall host on page that will be embedded as iframe
-	const host = new crosscall.Host({
+  ```js
+  // create crosscall host on page, which will be in popup or iframe
+  const host = new crosscall.Host({
 
-		// functionality exposed for clients to call
-		callee: {
-			testTopic: {
-				async test1(x) { return x },
-				async test2(x) { return x + 1 }
-			}
-		},
+    callee: {
 
-		// each client origin gets its own callee access permission
-		permissions: [{
-			origin: /^http:\/\/localhost:8080/,
-			allowed: {
-				testTopic: ["test1", "test2"]
-			},
-			allowedEvents: []
-		}]
-	})
-	```
+      // async functions exposed for client to use
+      topics: {
+        exampleTopic: {
+          async exampleMethodAlpha(x) { return x },
+          async exampleMethodBravo(x) { return x + 1 }
+        }
+      },
+
+      // events exposed for client to use
+      events: {
+        exampleEvent: {
+          listen(listener) {
+            window.addEventListener("explosion", listener)
+          }
+          unlisten(listener) {
+            window.removeEventListener("explosion", listener)
+          }
+        }
+      }
+    },
+
+    // each client origin gets its own access permissions
+    permissions: [{
+      origin: /^http:\/\/localhost:8080$/,
+      allowedTopics: {
+        exampleTopic: ["exampleMethodAlpha", "exampleMethodBravo"]
+      },
+      allowedEvents: ["exampleEvent"]
+    }]
+  })
+  ```
 
 - **client page, at "`https://localhost:8080/index.html`"**  
-	sourcecode [client.ts](./source/client.ts)
+  sourcecode [client.ts](./source/client.ts)
 
-	```js
-	// create crosscall client which opens the host page in a hidden iframe
-	const client = new crosscall.Client({
-		link: "http://localhost:8080/host.html",
-		hostOrigin: "http://localhost:8080"
-	})
+  ```js
+  // create crosscall client, which initiates connection to host page
+  const client = new crosscall.Client({
+    link: "http://localhost:8080/host.html",
+    hostOrigin: "http://localhost:8080"
+  })
 
-	// wait for the callable object to become available
-	const {testTopic} = await client.callable
+  // wait for the callable object to become available
+  const {topics, events} = await client.callable
 
-	// seamlessly utilize the host's functionality
-	const result1 = await testTopic.test1(4)
-	const result2 = await testTopic.test2(4)
+  // seamlessly utilize the host's functionality
+  const result1 = await topics.exampleTopic.exampleMethodAlpha(4) //> 4
+  const result2 = await topics.exampleTopic.exampleMethodBravo(4) //> 5
 
-	console.log(result1) //> 4
-	console.log(result2) //> 5
-	```
+  // listen for an event
+  events.exampleEvent.listen(() => console.log("exampleEvent"))
+
+  ```
 
 ## noteworthy design points
 
 - **seamless calling experience for the client**
-	- no awful-to-maintain string literals
-		```js
-		// garbage
-		const result = await rpc.request("testTopic", "test1", [5])
-		```
-	- crosscall feels like the real thing *(and maintains proper typescript
-		typings)*
-		```js
-		// crosscall experience
-		const result = await testTopic.test1(5)
-		```
+  ```js
+  // garbage — we don't need these awful-to-maintain string literals
+  const result = await rpc.request("exampleTopic", "exampleMethodAlpha", [5])
+
+  // seamless crosscall experience — feels just like the real thing
+  const result = await topics.exampleTopic.exampleMethodAlpha(5)
+  ```
 
 - **simple permissions system**
-	- specify allowed access for each origin, on a per-method basis
-	- both client and host will reject messages from untrusted origins
+  - specify allowed access for each origin, on a per-method basis
+  - both client and host will reject messages from untrusted origins
 
-	```typescript
-	// each client origin gets its own callee access permission
-	permissions: [{
-		origin: /^http:\/\/localhost:8080/,
-		allowed: {
-			testTopic: ["test1", "test2"]
-		},
-		allowedEvents: []
-	}]
-	```
-
-## event system *(experimental)*
-
-- this event system allows the client page to listen for events on the host page.  
-	this allows for bi-directional communication between the client and host pages
-
-- **host page**
-
-	```js
-	const host = new crosscall.Host({
-
-		// functionality exposed for clients to call
-		callee: {
-			testTopic: {
-				async test1(x) { return x },
-				async test2(x) { return x + 1 }
-			}
-		},
-
-		// events available for the client to listen for
-		events: {
-			testExplosion: {
-				listen(listener) {
-					window.addEventListener("explosion", listener)
-				}
-				unlisten(listener) {
-					window.removeEventListener("explosion", listener)
-				}
-			}
-		},
-
-		// each client origin gets its own callee access permission
-		permissions: [{
-			origin: /^http:\/\/localhost:8080/,
-			allowed: {
-				testTopic: ["test1", "test2"]
-			},
-			allowedEvents: ["testExplosion"]
-		}]
-	})
-	```
-
-- **client page**
-
-	```js
-	const client = new crosscall.Client({
-		link: "http://localhost:8080/host.html",
-		hostOrigin: "http://localhost:8080"
-	})
-
-	// wait for the callable object to become available
-	const {testTopic} = await client.callable
-	const {testEvent} = await client.events
-
-	// seamlessly utilize the host's functionality
-	const result1 = await testTopic.test1(4)
-	const result2 = await testTopic.test2(4)
-
-	testEvent.listen(() => console.log("testEvent"))
-
-	console.log(result1) //> 4
-	console.log(result2) //> 5
-	```
+  ```typescript
+  // each client origin gets its own callee access permission
+  permissions: [{
+    origin: /^http:\/\/localhost:8080$/,
+    allowedTopics: {
+      exampleTopic: ["exampleMethodAlpha", "exampleMethodBravo"]
+    },
+    allowedEvents: []
+  }]
+  ```
 
 ## staying secure
 
 - i'm not responsible for how you use this tech
-- in production, you've really got to use this stuff over **HTTPS**
+- you've really got to use this stuff over **HTTPS**
