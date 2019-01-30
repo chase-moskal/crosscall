@@ -57,7 +57,7 @@ export default class Client<
 		shims.addEventListener("message", handleMessageEvent, false)
 	}
 
-	destructor() {
+	deconstructor() {
 		const {iframe, shims, handleMessageEvent} = this
 		if (iframe) {
 			shims.removeChild(iframe)

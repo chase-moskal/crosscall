@@ -16,10 +16,10 @@ describe("crosscall client", (): any => {
 		expect(listener).toBeDefined()
 	})
 
-	it("unbinds message event listener on destructor", async() => {
+	it("unbinds message event listener on deconstructor", async() => {
 		const {shims, ...opts} = makeClientOptions()
 		const client = new Client({shims, ...opts})
-		client.destructor()
+		client.deconstructor()
 		const [event, listener, cap] = shims.removeEventListener.mock.calls[0]
 		expect(event).toBe("message")
 		expect(listener).toBeDefined()

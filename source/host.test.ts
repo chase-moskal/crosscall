@@ -29,10 +29,10 @@ describe("crosscall host", () => {
 		expect(shims.addEventListener.mock.calls.length).toBe(1)
 	})
 
-	it("unbinds message event listener on destructor", async() => {
+	it("unbinds message event listener on deconstructor", async() => {
 		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
-		host.destructor()
+		host.deconstructor()
 		expect(shims.removeEventListener.mock.calls.length).toBe(1)
 	})
 

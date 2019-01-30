@@ -57,7 +57,7 @@ export default class Host<
 		this.sendMessage({signal: Signal.Wakeup}, "*")
 	}
 
-	destructor() {
+	deconstructor() {
 		const {handleMessageEvent} = this
 		const {removeEventListener} = this.shims
 		this.shims.removeEventListener("message", handleMessageEvent)
