@@ -20,7 +20,7 @@
 
 ## usage by example
 
-- **host page, at "`https://localhost:8080/host.html`"**
+- **host page, at "`http://localhost:8080/host.html`"**
 
   ```js
   // create crosscall host on page, which will be in popup or iframe
@@ -60,7 +60,7 @@
   })
   ```
 
-- **client page, at "`https://localhost:8080/index.html`"**
+- **client page, at "`http://localhost:8080/index.html`"**
 
   ```js
   // create crosscall client spawn host page in an iframe or a popup
