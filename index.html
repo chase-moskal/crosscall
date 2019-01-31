@@ -19,16 +19,20 @@
 
 		<script src="node_modules/requirejs/require.js"></script>
 		<script>
-			require(["./dist/client"], ({default: CrosscallClient, ...mod}) => {
+			require(["./dist/index"], crosscall => {
 				(async() => {
 					const {origin, pathname} = window.location
 					const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
 
-					// create crosscall client
-					const crosscallClient = new CrosscallClient({
-						link: origin + dirname + "/host.html",
-						hostOrigin: origin,
-						popup: false
+					// create host iframe and grab postmessage
+					const {postMessage} = crosscall.createIframe({
+						url: origin + dirname + "/host.html"
+					})
+
+					// create crosscall client, pass in the iframe's postmessage
+					const crosscallClient = new crosscall.Client({
+						hostOrigin,
+						postMessage
 					})
 
 					// wait for the callable object to become available

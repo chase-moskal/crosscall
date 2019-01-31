@@ -180,7 +180,6 @@ export default class Host<gCallee extends Callee = Callee> {
 const defaultShims: HostShims = {
 	postMessage: (() => {
 		const {parent, opener} = window
-		debugger
 		if (parent && parent !== window) return parent.postMessage.bind(parent)
 		else if (opener && opener !== window) return opener.postMessage.bind(opener)
 		else return null

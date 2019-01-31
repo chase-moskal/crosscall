@@ -174,7 +174,6 @@ export interface ClientShims {
 	removeChild: typeof document.body.removeChild
 	addEventListener: typeof window.addEventListener
 	removeEventListener: typeof window.removeEventListener
-	postMessage: typeof window.postMessage
 }
 
 export type Listener = (event: any) => void
@@ -197,6 +196,20 @@ export interface ClientEvents {
 	[eventName: string]: ClientEventMediator
 }
 
+export interface CreateIframeOptions {
+	url: string
+	documentCreateElement?: typeof document.createElement
+	documentBodyAppendChild?: typeof document.body.appendChild
+}
+
+export interface CreatePopupOptions {
+	url: string
+	target?: string
+	features?: string
+	replace?: boolean
+	windowOpen?: typeof window.open
+}
+
 export interface HostOptions<gCallee extends Callee = Callee> {
 	callee: gCallee
 	permissions: Permission[]
@@ -210,8 +223,7 @@ export interface PopupOptions {
 }
 
 export interface ClientOptions {
-	hostUrl: string
 	hostOrigin: string
+	postMessage: typeof window.postMessage
 	shims?: Partial<ClientShims>
-	popup?: boolean | PopupOptions
 }

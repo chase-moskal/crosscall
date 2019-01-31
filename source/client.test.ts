@@ -31,6 +31,6 @@ describe("crosscall client", (): any => {
 		const message: Message = {signal: Signal.Wakeup}
 		const origin = goodOrigin
 		await client.testReceiveMessage({message, origin})
-		expect(shims.postMessage.mock.calls.length).toBe(1)
+		expect(opts.postMessage.mock.calls.length).toBe(1)
 	})
 })

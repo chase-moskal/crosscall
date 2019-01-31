@@ -29,16 +29,17 @@ export interface TestCallable extends Callable {
 	}
 }
 
+const hostUrl = "https://alpha.egg/crosscall-host.html"
+
 export const makeClientOptions = () => ({
-	hostUrl: "https://alpha.egg/crosscall-host.html",
 	hostOrigin: "https://alpha.egg",
+	postMessage: jest.fn<typeof window.postMessage>(),
 	shims: {
 		createElement: jest.fn<typeof document.createElement>(),
 		appendChild: jest.fn<typeof document.appendChild>(),
 		removeChild: jest.fn<typeof document.removeChild>(),
 		addEventListener: jest.fn<typeof window.addEventListener>(),
 		removeEventListener: jest.fn<typeof window.removeEventListener>(),
-		postMessage: jest.fn<typeof window.postMessage>()
 	}
 })
 
@@ -121,7 +122,7 @@ export const makeBridgedSetup = () => {
 	))
 
 	// route client output to host input
-	clientOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
+	clientOptions.postMessage = (jest.fn<typeof window.postMessage>(
 		async(message: Message, origin: string) => {
 			await sleep(0)
 			await host.testReceiveMessage({message, origin: goodOrigin})

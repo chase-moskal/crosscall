@@ -28,6 +28,7 @@ import {
 
 export default class Client<gCallable extends Callable = Callable> {
 	private readonly hostOrigin: string
+	private readonly postMessage: typeof window.postMessage
 	private readonly shims: ClientShims
 	private readonly requests: Map<Id, PendingRequest> = new Map()
 	private readonly listenerOrganizer = new ListenerOrganizer()
@@ -41,17 +42,15 @@ export default class Client<gCallable extends Callable = Callable> {
 	})
 
 	constructor({
-		hostUrl,
 		hostOrigin,
-		popup = false,
-		shims: inputShims = {}
+		postMessage,
+		shims = {}
 	}: ClientOptions) {
 		const {handleMessageEvent} = this
-		const shims = {...defaultShims, ...inputShims}
+		this.shims = {...defaultShims, ...shims}
 		this.hostOrigin = hostOrigin
-		this.shims = shims
-		this.preparePostMessage(hostUrl, popup)
-		shims.addEventListener("message", handleMessageEvent, false)
+		this.postMessage = postMessage
+		this.shims.addEventListener("message", handleMessageEvent, false)
 	}
 
 	deconstructor() {
@@ -61,34 +60,6 @@ export default class Client<gCallable extends Callable = Callable> {
 			this.iframe = null
 		}
 		shims.removeEventListener("message", handleMessageEvent)
-	}
-
-	private preparePostMessage(hostUrl: string, popup: boolean | PopupOptions) {
-		const {shims} = this
-
-		// if postmessage shim is provided, use that (do nothing)
-		if (shims.postMessage) return
-
-		// with provided popup options, open host in popup, use its postmessage
-		if (popup) {
-			const {target, features, replace} = typeof popup === "boolean"
-				? defaultPopupOptions
-				: popup
-			const popupWindow = window.open(hostUrl, target, features, replace)
-			shims.postMessage = popupWindow.postMessage.bind(popupWindow)
-		}
-
-		// without popup options, open host in iframe, use its postmessage
-		else {
-			const iframe = shims.createElement("iframe")
-			iframe.style.display = "none"
-			iframe.src = hostUrl
-			this.iframe = iframe
-			shims.appendChild(iframe)
-			shims.postMessage = iframe.contentWindow.postMessage.bind(
-				iframe.contentWindow
-			)
-		}
 	}
 
 	private readonly handleMessageEvent = ({
@@ -128,10 +99,9 @@ export default class Client<gCallable extends Callable = Callable> {
 	}
 
 	private async sendMessage<gMessage extends Message = Message>(message: gMessage): Promise<Id> {
-		const {hostOrigin, shims} = this
 		const id = this.messageId++
 		const payload: gMessage = {...<any>message, id}
-		await shims.postMessage(payload, hostOrigin)
+		await this.postMessage(payload, this.hostOrigin)
 		return id
 	}
 
@@ -241,8 +211,7 @@ const defaultShims: ClientShims = {
 	appendChild: document.body.appendChild.bind(document.body),
 	removeChild: document.body.removeChild.bind(document.body),
 	addEventListener: window.addEventListener.bind(window),
-	removeEventListener: window.removeEventListener.bind(window),
-	postMessage: null
+	removeEventListener: window.removeEventListener.bind(window)
 }
 
 const defaultPopupOptions: PopupOptions = {

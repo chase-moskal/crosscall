@@ -63,11 +63,15 @@
 - **client page, at "`http://localhost:8080/index.html`"**
 
   ```js
-  // create crosscall client spawn host page in an iframe or a popup
+  // create iframe, pointing to the host page
+  const {postMessage} = crosscall.createIframe({
+    url: "http://localhost:8080/host.html"
+  })
+
+  // create crosscall client, which communicates to the host via postMessage
   const client = new crosscall.Client({
-    hostUrl: "http://localhost:8080/host.html",
     hostOrigin: "http://localhost:8080",
-    popup: false // spawn host in iframe instead of popup (default)
+    postMessage
   })
 
   // wait for the callable object to become available
@@ -106,6 +110,24 @@
     },
     allowedEvents: []
   }]
+  ```
+
+- **communicate with host as iframe or as popup**
+  ```js
+  // create iframe
+  const {postMessage, iframe} = crosscall.createIframe({
+    url: "http://localhost:8080/host.html"
+  })
+
+  // create popup
+  const {postMessage, popup} = crosscall.createPopup({
+    url: "http://localhost:8080/host.html",
+    target: "_blank",
+    features: "title=0",
+    replace: true
+  })
+
+  // then pass `postMessage` to the crosscall client constructor
   ```
 
 ## staying secure
