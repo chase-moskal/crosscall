@@ -27,23 +27,23 @@
 					// create crosscall client
 					const crosscallClient = new CrosscallClient({
 						link: origin + dirname + "/host.html",
-						hostOrigin: origin
+						hostOrigin: origin,
+						popup: false
 					})
 
 					// wait for the callable object to become available
-					const {testTopic} = await crosscallClient.callable
+					const {topics, events} = await crosscallClient.callable
 
 					// seamlessly utilize the host's async functionality
-					const result1 = await testTopic.test1(4)
-					const result2 = await testTopic.test2(4)
-
+					const result1 = await topics.testTopic.test1(4)
+					const result2 = await topics.testTopic.test2(4)
 					console.log(result1) //> 4
 					console.log(result2) //> 5
 
 					// continually update results from the host
 					const timekeeper = document.querySelectorAll(".timekeeper")
 					async function updateTime() {
-						const time = await testTopic.test3()
+						const time = await topics.testTopic.test3()
 						for (const keeper of timekeeper) keeper.textContent = time
 					}
 					updateTime()

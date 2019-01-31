@@ -203,8 +203,15 @@ export interface HostOptions<gCallee extends Callee = Callee> {
 	shims?: Partial<HostShims>
 }
 
+export interface PopupOptions {
+	target?: string
+	features?: string
+	replace?: boolean
+}
+
 export interface ClientOptions {
-	link: string
+	hostUrl: string
 	hostOrigin: string
 	shims?: Partial<ClientShims>
+	popup?: boolean | PopupOptions
 }
