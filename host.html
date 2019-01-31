@@ -5,6 +5,7 @@
 		<title>crosscall host</title>
 	</head>
 	<body>
+		<h1>crosscall host</h1>
 		<script src="node_modules/requirejs/require.js"></script>
 		<script>
 			require(["./dist/host"], ({default: CrosscallHost, ...mod}) => {
@@ -13,17 +14,20 @@
 
 					// functionality exposed for clients to call
 					callee: {
-						testTopic: {
-							async test1(x) { return x },
-							async test2(x) { return x + 1 },
-							async test3() { return Date.now() }
-						}
+						topics: {
+							testTopic: {
+								async test1(x) { return x },
+								async test2(x) { return x + 1 },
+								async test3() { return Date.now() }
+							}
+						},
+						events: {}
 					},
 
 					// each client origin gets its own callee access permission
 					permissions: [{
 						origin: new RegExp(window.location.origin, "i"),
-						allowed: {
+						allowedTopics: {
 							testTopic: ["test1", "test2", "test3"]
 						},
 						allowedEvents: []

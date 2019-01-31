@@ -4,15 +4,15 @@ import ListenerOrganizer from "./listener-organizer"
 import {
 	Id,
 	Signal,
-	AllowedTopics,
 	Message,
 	Callable,
 	ClientShims,
 	CallRequest,
 	CallResponse,
-	ClientEvents,
 	ErrorMessage,
 	EventMessage,
+	PopupOptions,
+	AllowedTopics,
 	AllowedEvents,
 	ClientOptions,
 	PendingRequest,
@@ -43,12 +43,14 @@ export default class Client<gCallable extends Callable = Callable> {
 	constructor({
 		link,
 		hostOrigin,
+		popup = null,
 		shims: inputShims = {}
 	}: ClientOptions) {
 		const {handleMessageEvent} = this
 		const shims = {...defaultShims, ...inputShims}
-		Object.assign(this, {hostOrigin, shims})
-		this.preparePostMessage(link)
+		this.hostOrigin = hostOrigin
+		this.shims = shims
+		this.preparePostMessage(link, popup)
 		shims.addEventListener("message", handleMessageEvent, false)
 	}
 
@@ -61,17 +63,30 @@ export default class Client<gCallable extends Callable = Callable> {
 		shims.removeEventListener("message", handleMessageEvent)
 	}
 
-	private preparePostMessage(link: string) {
+	private preparePostMessage(link: string, popupOptions: PopupOptions) {
 		const {shims} = this
+
+		// if postmessage shim is provided, use that (do nothing)
 		if (shims.postMessage) return
-		const iframe = shims.createElement("iframe")
-		iframe.style.display = "none"
-		iframe.src = link
-		Object.assign(this, {iframe})
-		shims.appendChild(iframe)
-		shims.postMessage = iframe.contentWindow.postMessage.bind(
-			iframe.contentWindow
-		)
+
+		// with provided popup options, open host in popup, use its postmessage
+		if (popupOptions) {
+			const {target, features, replace} = popupOptions
+			const popup = window.open(link, target, features, replace)
+			shims.postMessage = popup.postMessage.bind(popup)
+		}
+
+		// without popup options, open host in iframe, use its postmessage
+		else {
+			const iframe = shims.createElement("iframe")
+			iframe.style.display = "none"
+			iframe.src = link
+			this.iframe = iframe
+			shims.appendChild(iframe)
+			shims.postMessage = iframe.contentWindow.postMessage.bind(
+				iframe.contentWindow
+			)
+		}
 	}
 
 	private readonly handleMessageEvent = ({

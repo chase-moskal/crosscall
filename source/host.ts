@@ -4,17 +4,16 @@ import {
 	Id,
 	Callee,
 	Signal,
-	AllowedTopics,
 	Message,
 	Listener,
 	HostShims,
 	Permission,
-	HostEvents,
 	CallRequest,
 	HostOptions,
 	CallResponse,
 	ErrorMessage,
 	EventMessage,
+	AllowedTopics,
 	AllowedEvents,
 	HandshakeRequest,
 	HandshakeResponse,
@@ -28,7 +27,6 @@ import {
 
 export default class Host<gCallee extends Callee = Callee> {
 	private readonly callee: gCallee
-	// private readonly events: gEvents
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims
 	private listeners = new Map<number, {
@@ -41,14 +39,13 @@ export default class Host<gCallee extends Callee = Callee> {
 	constructor({
 		callee,
 		permissions,
-		// events = <gEvents>{},
 		shims = {}
 	}: HostOptions<gCallee>) {
 		this.shims = {...defaultShims, ...shims}
-		if (!this.shims.postMessage) throw error(`crosscall host must be loaded via iframe`)
+		if (!this.shims.postMessage) throw error(`crosscall host has invalid `
+			+ `postmessage (could not find window parent or opener)`)
 		validatePermissionsAreWellFormed(permissions)
 		this.callee = callee
-		// this.events = events
 		this.permissions = permissions
 		this.shims.addEventListener("message", this.handleMessageEvent, false)
 		this.sendMessage({signal: Signal.Wakeup}, "*")
@@ -181,10 +178,13 @@ export default class Host<gCallee extends Callee = Callee> {
 }
 
 const defaultShims: HostShims = {
-	postMessage: (() => (window === window.parent)
-		? undefined
-		: window.parent.postMessage.bind(window.parent)
-	)(),
+	postMessage: (() => {
+		const {parent, opener} = window
+		debugger
+		if (parent && parent !== window) return parent.postMessage.bind(parent)
+		else if (opener && opener !== window) return opener.postMessage.bind(opener)
+		else return null
+	})(),
 	addEventListener: window.addEventListener.bind(window),
 	removeEventListener: window.removeEventListener.bind(window)
 }
