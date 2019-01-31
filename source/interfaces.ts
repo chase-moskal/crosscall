@@ -210,8 +210,8 @@ export interface PopupOptions {
 }
 
 export interface ClientOptions {
-	link: string
+	hostUrl: string
 	hostOrigin: string
-	popup?: PopupOptions
 	shims?: Partial<ClientShims>
+	popup?: boolean | PopupOptions
 }

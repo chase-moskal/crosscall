@@ -5,23 +5,22 @@
 
 **`npm install crosscall`**
 
-- **facilitate remote procedure calls between webpages**  
+- **remote procedure calls and events between webpages**  
   even if they are on different origins  
 
-- **expose async functionality across pages**  
-  which other pages can call remotely  
-  with a seamless calling experience  
-  using iframe/postmessage under the hood  
+- **crosscall client opens the host page in an iframe or a popup**  
+  the host can expose async functionality to the client  
+  crosscall mediates the client and host via postmessage  
 
 - **use-case example: cross-origin token storage**  
-  a host page can allow other pages to use its localstorage  
+  a crosscall host could provide access to its `localStorage`  
+  this allows for secure cross-domain token storage (federated identity)  
 
 - [**live demo**](https://chasemoskal.com/crosscall/)
 
 ## usage by example
 
-- **host page, at "`https://localhost:8080/host.html`"**  
-  sourcecode [host.ts](./source/host.ts)
+- **host page, at "`https://localhost:8080/host.html`"**
 
   ```js
   // create crosscall host on page, which will be in popup or iframe
@@ -61,14 +60,14 @@
   })
   ```
 
-- **client page, at "`https://localhost:8080/index.html`"**  
-  sourcecode [client.ts](./source/client.ts)
+- **client page, at "`https://localhost:8080/index.html`"**
 
   ```js
-  // create crosscall client, which initiates connection to host page
+  // create crosscall client spawn host page in an iframe or a popup
   const client = new crosscall.Client({
-    link: "http://localhost:8080/host.html",
-    hostOrigin: "http://localhost:8080"
+    hostUrl: "http://localhost:8080/host.html",
+    hostOrigin: "http://localhost:8080",
+    popup: false // spawn host in iframe instead of popup (default)
   })
 
   // wait for the callable object to become available

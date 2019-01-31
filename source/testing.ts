@@ -30,7 +30,7 @@ export interface TestCallable extends Callable {
 }
 
 export const makeClientOptions = () => ({
-	link: "https://alpha.egg/crosscall-host.html",
+	hostUrl: "https://alpha.egg/crosscall-host.html",
 	hostOrigin: "https://alpha.egg",
 	shims: {
 		createElement: jest.fn<typeof document.createElement>(),
