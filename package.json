@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.5-dev.0",
+	"version": "0.0.5",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
