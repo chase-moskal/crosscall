@@ -123,7 +123,7 @@
   const {postMessage, popup} = crosscall.createPopup({
     url: "http://localhost:8080/host.html",
     target: "_blank",
-    features: "title=0",
+    features: "title=0,width=360,height=200",
     replace: true
   })
 

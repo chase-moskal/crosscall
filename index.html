@@ -24,14 +24,14 @@
 					const {origin, pathname} = window.location
 					const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
 
-					// create host iframe and grab postmessage
+					// create host iframe
 					const {postMessage} = crosscall.createIframe({
 						url: origin + dirname + "/host.html"
 					})
 
 					// create crosscall client, pass in the iframe's postmessage
 					const crosscallClient = new crosscall.Client({
-						hostOrigin,
+						hostOrigin: origin,
 						postMessage
 					})
 
