@@ -176,16 +176,18 @@ export interface ClientShims {
 	removeEventListener: typeof window.removeEventListener
 }
 
-export type Listener = (event: any) => void
-
-export interface HostEventMediator {
-	listen(listener: Listener): void
-	unlisten(listener: Listener): void
+export interface Listener<EventPayload extends Object = any> {
+	(event: EventPayload): void
 }
 
-export interface ClientEventMediator {
-	listen(listener: Listener): Promise<void>
-	unlisten(listener: Listener): Promise<void>
+export interface HostEventMediator<GListener extends Listener = Listener> {
+	listen(listener: GListener): void
+	unlisten(listener: GListener): void
+}
+
+export interface ClientEventMediator<GListener extends Listener = Listener> {
+	listen(listener: GListener): Promise<void>
+	unlisten(listener: GListener): Promise<void>
 }
 
 export interface HostEvents {
