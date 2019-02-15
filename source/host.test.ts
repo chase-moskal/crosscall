@@ -17,7 +17,7 @@ describe("crosscall host", () => {
 	it("sends a wakeup mesesage", async() => {
 		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
-		const [message, origin] = <[Message, string]>shims.postMessage.mock.calls[0]
+		const [message, origin] = <[Message, string]>(<any>shims.postMessage).mock.calls[0]
 		expect(message.id).toBe(0)
 		expect(message.signal).toBe(Signal.Wakeup)
 		expect(origin).toBe("*")
@@ -26,14 +26,14 @@ describe("crosscall host", () => {
 	it("binds message event listener", async() => {
 		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
-		expect(shims.addEventListener.mock.calls.length).toBe(1)
+		expect((<any>shims.addEventListener).mock.calls.length).toBe(1)
 	})
 
 	it("unbinds message event listener on deconstructor", async() => {
 		const {callee, permissions, shims} = makeHostOptions()
 		const host = new Host({callee, permissions, shims})
 		host.deconstructor()
-		expect(shims.removeEventListener.mock.calls.length).toBe(1)
+		expect((<any>shims.removeEventListener).mock.calls.length).toBe(1)
 	})
 
 	it("responds to handshake message", async() => {
@@ -46,7 +46,7 @@ describe("crosscall host", () => {
 		}
 		const origin = goodOrigin
 		await host.testReceiveMessage({message, origin})
-		const [m, o] = <[HandshakeResponse, string]>shims.postMessage.mock.calls[1]
+		const [m, o] = <[HandshakeResponse, string]>(<any>shims.postMessage).mock.calls[1]
 		expect(m.associate).toBe(id)
 		expect(o).toBe(origin)
 	})
@@ -67,8 +67,10 @@ describe("crosscall host", () => {
 			origin
 		})
 
-		const [call1message, call1origin] = <[CallResponse<number>, string]>shims
-			.postMessage.mock.calls[1]
+		const [call1message, call1origin] = <[CallResponse<number>, string]>(
+			<any>shims.postMessage
+		).mock.calls[1]
+
 		expect(call1message.associate).toBe(123)
 		expect(call1origin).toBe(origin)
 		expect(call1message.result).toBe(5)
@@ -84,8 +86,10 @@ describe("crosscall host", () => {
 			origin
 		})
 
-		const [call2message, call2origin] = <[CallResponse<number>, string]>shims
-			.postMessage.mock.calls[2]
+		const [call2message, call2origin] = <[CallResponse<number>, string]>(
+			<any>shims.postMessage
+		).mock.calls[2]
+
 		expect(call2message.associate).toBe(124)
 		expect(call2origin).toBe(origin)
 		expect(call2message.result).toBe(6)

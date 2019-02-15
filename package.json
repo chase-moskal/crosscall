@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.0",
+	"version": "0.0.6-dev.1",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -27,7 +27,7 @@
 		"build-debug": "rimraf dist && tsc --target esnext --sourceMap false --inlineSourceMap true",
 		"coverage": "npm run build-debug -s && jest --verbose --coverage",
 		"start": "http-server",
-		"test": "jest --verbose"
+		"test": "jest --verbose --rootDir dist"
 	},
 	"repository": {
 		"type": "git",

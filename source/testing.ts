@@ -31,15 +31,15 @@ export interface TestCallable extends Callable {
 
 const hostUrl = "https://alpha.egg/crosscall-host.html"
 
-export const makeClientOptions = () => ({
+export const makeClientOptions = (): ClientOptions => ({
 	hostOrigin: "https://alpha.egg",
-	postMessage: jest.fn<typeof window.postMessage>(),
+	postMessage: jest.fn<typeof window.postMessage, any>(),
 	shims: {
-		createElement: jest.fn<typeof document.createElement>(),
-		appendChild: jest.fn<typeof document.appendChild>(),
-		removeChild: jest.fn<typeof document.removeChild>(),
-		addEventListener: jest.fn<typeof window.addEventListener>(),
-		removeEventListener: jest.fn<typeof window.removeEventListener>(),
+		createElement: <typeof document.createElement>jest.fn(),
+		appendChild: <typeof document.appendChild>jest.fn(),
+		removeChild: <typeof document.removeChild>jest.fn(),
+		addEventListener: <typeof window.addEventListener>jest.fn(),
+		removeEventListener: <typeof window.removeEventListener>jest.fn()
 	}
 })
 
@@ -66,9 +66,9 @@ export const makeHostOptions = () => ({
 		allowedEvents: ["testEvent"]
 	}],
 	shims: {
-		postMessage: jest.fn<typeof window.postMessage>(),
-		addEventListener: jest.fn<typeof window.addEventListener>(),
-		removeEventListener: jest.fn<typeof window.removeEventListener>()
+		postMessage: <typeof window.postMessage>jest.fn(),
+		addEventListener: <typeof window.addEventListener>jest.fn(),
+		removeEventListener: <typeof window.removeEventListener>jest.fn()
 	}
 })
 
@@ -114,19 +114,19 @@ export const makeBridgedSetup = () => {
 	let host: TestHost<TestCallee>
 
 	// route host output to client input
-	hostOptions.shims.postMessage = (jest.fn<typeof window.postMessage>(
+	hostOptions.shims.postMessage = <any><typeof window.postMessage>jest.fn(
 		async(message: Message, origin: string) => {
 			await sleep(0)
 			await client.testReceiveMessage({message, origin: goodOrigin})
 		}
-	))
+	)
 
 	// route client output to host input
-	clientOptions.postMessage = (jest.fn<typeof window.postMessage>(
-		async(message: Message, origin: string) => {
+	clientOptions.postMessage = (<typeof window.postMessage>jest.fn(
+		<any>(async(message: Message, origin: string) => {
 			await sleep(0)
 			await host.testReceiveMessage({message, origin: goodOrigin})
-		}
+		})
 	))
 
 	// client created first, the way iframes work
