@@ -42,7 +42,7 @@
         exampleEvent: {
           listen(listener) {
             window.addEventListener("explosion", listener)
-          }
+          },
           unlisten(listener) {
             window.removeEventListener("explosion", listener)
           }
