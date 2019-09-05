@@ -18,6 +18,7 @@
 
 - [**live demo**](https://chasemoskal.com/crosscall/)
 
+
 ## usage by example
 
 - **host page, at "`http://localhost:8080/host.html`"**
@@ -134,3 +135,20 @@
 
 - i'm not responsible for how you use this tech
 - you've really got to use this stuff over **HTTPS**
+
+## notes for future refactors
+
+i'd like the creation of a host to more reflect the renraku api
+
+```js
+const host = new CrosscallHost({
+	exposures: [{
+		allowed: /^http\:\/\/localhost\:8\d{3}$/i,
+		forbidden: null,
+		exposedTopics: {
+			exampleTopic: {}
+		},
+		exposedEvents: {}
+	}]
+})
+```
