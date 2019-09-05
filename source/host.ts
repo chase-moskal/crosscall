@@ -2,7 +2,7 @@
 import error from "./error"
 import {
 	Id,
-	Callee,
+	HostCallee,
 	Signal,
 	Message,
 	Listener,
@@ -25,7 +25,7 @@ import {
 	EventUnlistenResponse
 } from "./interfaces"
 
-export default class Host<gCallee extends Callee = Callee> {
+export default class Host<gCallee extends HostCallee = HostCallee> {
 	private readonly callee: gCallee
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims

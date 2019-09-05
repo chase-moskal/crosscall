@@ -2,16 +2,16 @@
 import Host from "./host"
 import Client from "./client"
 import {
-	Callee,
+	HostCallee,
 	Message,
-	Callable,
+	ClientCallable,
 	HostOptions,
 	ClientOptions
 } from "./interfaces"
 
 export type TestListener = (value: number) => void
 
-export interface TestCallee extends Callee {
+export interface TestCallee extends HostCallee {
 	topics: {
 		testTopic: {
 			test1(x: number): Promise<number>
@@ -20,7 +20,7 @@ export interface TestCallee extends Callee {
 	}
 }
 
-export interface TestCallable extends Callable {
+export interface TestCallable extends ClientCallable {
 	topics: {
 		testTopic: {
 			test1(x: number): Promise<number>
@@ -72,7 +72,7 @@ export const makeHostOptions = () => ({
 	}
 })
 
-export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
+export class TestHost<gCallee extends HostCallee = HostCallee> extends Host<gCallee> {
 
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
 		message: gMessage
@@ -87,7 +87,7 @@ export class TestHost<gCallee extends Callee = Callee> extends Host<gCallee> {
 }
 
 export class TestClient<
-	gCallable extends Callable = any
+	gCallable extends ClientCallable = any
 >extends Client<gCallable> {
 
 	async testReceiveMessage<gMessage extends Message = Message>(params: {

@@ -5,7 +5,7 @@ import {
 	Id,
 	Signal,
 	Message,
-	Callable,
+	ClientCallable,
 	ClientShims,
 	CallRequest,
 	CallResponse,
@@ -26,7 +26,7 @@ import {
 	ClientMessageHandlers
 } from "./interfaces"
 
-export default class Client<gCallable extends Callable = Callable> {
+export default class Client<gCallable extends ClientCallable = ClientCallable> {
 	private readonly hostOrigin: string
 	private readonly postMessage: typeof window.postMessage
 	private readonly shims: ClientShims

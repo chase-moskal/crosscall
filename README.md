@@ -152,11 +152,3 @@ const host = new CrosscallHost({
 	}]
 })
 ```
-
-naming:
-- instead of
-	- Callable (server)
-	- Callee (client)
-- the correct terms should be
-	- Callee (server)
-	- Caller (client)

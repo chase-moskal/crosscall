@@ -132,14 +132,14 @@ export interface ClientMessageHandlers {
 	[key: string]: (message: Message) => Promise<void>
 }
 
-export interface Callable {
+export interface ClientCallable {
 	topics: CallableTopics
-	events: HostEvents
+	events: ClientEvents
 }
 
-export interface Callee {
+export interface HostCallee {
 	topics: CalleeTopics
-	events: ClientEvents
+	events: HostEvents
 }
 
 export interface CallableTopics {
@@ -212,7 +212,7 @@ export interface CreatePopupOptions {
 	windowOpen?: typeof window.open
 }
 
-export interface HostOptions<gCallee extends Callee = Callee> {
+export interface HostOptions<gCallee extends HostCallee = HostCallee> {
 	callee: gCallee
 	permissions: Permission[]
 	shims?: Partial<HostShims>
