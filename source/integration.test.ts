@@ -1,10 +1,10 @@
 
-import {Signal, Listener} from "./interfaces"
+import {Signal, Listener} from "./interfaces.js"
 import {
 	nap,
 	goodOrigin,
 	makeBridgedSetup,
-} from "./testing"
+} from "./testing.js"
 
 describe("crosscall host/client integration", () => {
 

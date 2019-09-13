@@ -1,12 +1,11 @@
 
-import Host from "./host"
-import Client from "./client"
+import {Host} from "./host.js"
+import {Client} from "./client.js"
 import {
-	HostCallee,
 	Message,
+	HostCallee,
+	ClientOptions,
 	ClientCallable,
-	HostOptions,
-	ClientOptions
 } from "./interfaces"
 
 export type TestListener = (value: number) => void

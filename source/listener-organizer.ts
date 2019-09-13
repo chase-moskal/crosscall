@@ -1,7 +1,7 @@
 
-import {Listener} from "./interfaces"
+import {Listener} from "./interfaces.js"
 
-export default class ListenerOrganizer {
+export class ListenerOrganizer {
 	readonly ids = new Map<Listener, number>()
 	readonly listeners = new Map<number, Listener>()
 

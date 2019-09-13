@@ -1,5 +1,5 @@
 
-import error from "./error"
+import {error} from "./error.js"
 import {
 	Id,
 	HostCallee,
@@ -22,10 +22,10 @@ import {
 	HandleMessageParams,
 	HostMessageHandlers,
 	EventUnlistenRequest,
-	EventUnlistenResponse
-} from "./interfaces"
+	EventUnlistenResponse,
+} from "./interfaces.js"
 
-export default class Host<gCallee extends HostCallee = HostCallee> {
+export class Host<gCallee extends HostCallee = HostCallee> {
 	private readonly callee: gCallee
 	private readonly permissions: Permission[]
 	private readonly shims: HostShims

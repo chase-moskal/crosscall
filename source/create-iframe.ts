@@ -1,7 +1,7 @@
 
-import {CreateIframeOptions} from "./interfaces"
+import {CreateIframeOptions} from "./interfaces.js"
 
-export default function createIframe({
+export function createIframe({
 	url,
 	documentCreateElement = document.createElement.bind(document),
 	documentBodyAppendChild = document.body.appendChild.bind(document.body)

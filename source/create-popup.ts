@@ -1,7 +1,7 @@
 
-import {CreatePopupOptions} from "./interfaces"
+import {CreatePopupOptions} from "./interfaces.js"
 
-export default function createPopup({
+export function createPopup({
 	url,
 	target,
 	features,

@@ -1,9 +1,6 @@
 
-import {makeClientOptions, TestClient as Client} from "./testing"
-import {
-	Signal,
-	Message
-} from "./interfaces"
+import {Signal, Message} from "./interfaces.js"
+import {makeClientOptions, TestClient as Client} from "./testing.js"
 
 const goodOrigin = "https://alpha.egg"
 

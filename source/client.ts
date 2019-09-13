@@ -1,6 +1,6 @@
 
-import error from "./error"
-import ListenerOrganizer from "./listener-organizer"
+import {error} from "./error.js"
+import {ListenerOrganizer} from "./listener-organizer.js"
 import {
 	Id,
 	Signal,
@@ -24,9 +24,9 @@ import {
 	EventListenResponse,
 	EventUnlistenRequest,
 	ClientMessageHandlers,
-} from "./interfaces"
+} from "./interfaces.js"
 
-export default class Client<gCallable extends ClientCallable = ClientCallable> {
+export class Client<gCallable extends ClientCallable = ClientCallable> {
 	private readonly hostOrigin: string
 	private readonly postMessage: typeof window.postMessage
 	private readonly shims: ClientShims

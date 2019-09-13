@@ -1,5 +1,5 @@
 
-import {makeHostOptions, TestHost as Host} from "./testing"
+import {makeHostOptions, TestHost as Host} from "./testing.js"
 import {
 	Signal,
 	Message,
@@ -7,8 +7,8 @@ import {
 	CallRequest,
 	CallResponse,
 	HandshakeRequest,
-	HandshakeResponse
-} from "./interfaces"
+	HandshakeResponse,
+} from "./interfaces.js"
 
 const goodOrigin = "https://alpha.egg"
 const badOrigin = "https://bravo.egg"
