@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.5",
+	"version": "0.0.6-dev.6",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -21,9 +21,9 @@
 	],
 	"scripts": {
 		"prepare": "run-s build test",
-		"build": "rimraf dist && tsc && tsc --module commonjs --outDir dist-cjs",
+		"build": "rimraf dist && mkdirp dist dist/cjs && tsc && tsc --module commonjs --outDir dist/cjs",
 		"start": "http-server",
-		"test": "jest --verbose dist-cjs"
+		"test": "jest --verbose dist/cjs"
 	},
 	"repository": {
 		"type": "git",
