@@ -5,7 +5,6 @@ import {
 	Id,
 	Signal,
 	Message,
-	ClientCallable,
 	ClientShims,
 	CallRequest,
 	CallResponse,
@@ -16,6 +15,7 @@ import {
 	AllowedEvents,
 	ClientOptions,
 	PendingRequest,
+	ClientCallable,
 	ResponseMessage,
 	HandshakeRequest,
 	HandshakeResponse,
@@ -23,7 +23,7 @@ import {
 	ClientEventMediator,
 	EventListenResponse,
 	EventUnlistenRequest,
-	ClientMessageHandlers
+	ClientMessageHandlers,
 } from "./interfaces"
 
 export default class Client<gCallable extends ClientCallable = ClientCallable> {

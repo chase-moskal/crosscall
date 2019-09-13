@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.3",
+	"version": "0.0.6-dev.4",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -15,8 +15,6 @@
 		"xorigin",
 		"xdomain"
 	],
-	"main": "dist",
-	"types": "dist/index.d.ts",
 	"files": [
 		"dist",
 		"source"
