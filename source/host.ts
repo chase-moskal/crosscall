@@ -2,11 +2,11 @@
 import {error} from "./error.js"
 import {
 	Id,
-	HostCallee,
 	Signal,
 	Message,
 	Listener,
 	HostShims,
+	HostCallee,
 	Permission,
 	CallRequest,
 	HostOptions,
