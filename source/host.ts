@@ -27,8 +27,9 @@ import {
 
 export class Host<gCallee extends HostCallee = HostCallee> {
 	private readonly callee: gCallee
-	private readonly permissions: Permission[]
 	private readonly shims: HostShims
+	private readonly namespace: string
+	private readonly permissions: Permission[]
 	private listeners = new Map<number, {
 		listener: Listener
 		eventName: string
@@ -38,9 +39,11 @@ export class Host<gCallee extends HostCallee = HostCallee> {
 
 	constructor({
 		callee,
+		namespace,
 		permissions,
 		shims = {}
 	}: HostOptions<gCallee>) {
+		this.namespace = namespace
 		this.shims = {...defaultShims, ...shims}
 		if (!this.shims.postMessage) throw error(`crosscall host has invalid `
 			+ `postmessage (could not find window parent or opener)`)
@@ -57,17 +60,21 @@ export class Host<gCallee extends HostCallee = HostCallee> {
 	}
 
 	protected async receiveMessage<gMessage extends Message = Message>({
+		origin,
 		message,
-		origin
 	}: {
+		origin: string,
 		message: gMessage
-		origin: string
-	}) {
+	}): Promise<boolean> {
+		const isMeantForOurEyes = typeof message === "object"
+			&& message.namespace === this.namespace
+		if (!isMeantForOurEyes) return false
 		try {
 			const {permissions} = this
 			const permission = getOriginPermission({origin, permissions})
 			const handler = this.messageHandlers[message.signal]
 			await handler({message, origin, permission})
+			return true
 		}
 		catch (error) {
 			const errorMessage: ErrorMessage = {
@@ -82,16 +89,17 @@ export class Host<gCallee extends HostCallee = HostCallee> {
 
 	private readonly handleMessageEvent = async({
 		origin,
-		data: message
+		data: message,
 	}: MessageEvent) => this.receiveMessage({origin, message})
 
 	private async sendMessage<gMessage extends Message = Message>(
 		message: gMessage,
 		origin: string
 	): Promise<Id> {
+		const {namespace} = this
 		const {postMessage} = this.shims
 		const id = this.messageId++
-		const payload: gMessage = {...<any>message, id}
+		const payload: gMessage = {...<any>message, id, namespace}
 		await postMessage(payload, origin)
 		return id
 	}
@@ -104,7 +112,7 @@ export class Host<gCallee extends HostCallee = HostCallee> {
 		return this.sendMessage<EventMessage>({
 			signal: Signal.Event,
 			listenerId,
-			eventPayload
+			eventPayload,
 		}, origin)
 	}
 
@@ -118,8 +126,8 @@ export class Host<gCallee extends HostCallee = HostCallee> {
 			this.sendMessage<HandshakeResponse>({
 				signal: Signal.HandshakeResponse,
 				associate,
+				allowedEvents,
 				allowedTopics: allowed,
-				allowedEvents
 			}, origin)
 		},
 

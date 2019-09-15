@@ -11,6 +11,7 @@
 			require(["./dist/host"], ({default: CrosscallHost, ...mod}) => {
 
 				const crosscallHost = new CrosscallHost({
+					namespace: "crosscall-example",
 
 					// functionality exposed for clients to call
 					callee: {

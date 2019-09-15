@@ -27,9 +27,10 @@ import {
 } from "./interfaces.js"
 
 export class Client<gCallable extends ClientCallable = ClientCallable> {
+	private readonly namespace: string
 	private readonly hostOrigin: string
-	private readonly postMessage: typeof window.postMessage
 	private readonly shims: ClientShims
+	private readonly postMessage: typeof window.postMessage
 	private readonly requests: Map<Id, PendingRequest> = new Map()
 	private readonly listenerOrganizer = new ListenerOrganizer()
 	private iframe: HTMLIFrameElement
@@ -42,10 +43,12 @@ export class Client<gCallable extends ClientCallable = ClientCallable> {
 	})
 
 	constructor({
+		namespace,
 		hostOrigin,
 		postMessage,
-		shims = {}
+		shims = {},
 	}: ClientOptions) {
+		this.namespace = namespace
 		const {handleMessageEvent} = this
 		this.shims = {...defaultShims, ...shims}
 		this.hostOrigin = hostOrigin
@@ -68,12 +71,16 @@ export class Client<gCallable extends ClientCallable = ClientCallable> {
 	}: MessageEvent) => this.receiveMessage({message, origin})
 
 	protected async receiveMessage<gMessage extends Message = Message>({
+		origin,
 		message,
-		origin
 	}: {
+		origin: string,
 		message: gMessage
-		origin: string
-	}): Promise<void> {
+	}): Promise<boolean> {
+		const isMeantForOurEyes = typeof message === "object"
+			&& message.namespace === this.namespace
+		if (!isMeantForOurEyes) return false
+
 		const {hostOrigin, messageHandlers} = this
 
 		if (origin !== hostOrigin)
@@ -84,6 +91,7 @@ export class Client<gCallable extends ClientCallable = ClientCallable> {
 			throw error(`unknown message signal ${message.signal}`)
 
 		handler(message)
+		return true
 	}
 
 	private async request<
@@ -99,8 +107,9 @@ export class Client<gCallable extends ClientCallable = ClientCallable> {
 	}
 
 	private async sendMessage<gMessage extends Message = Message>(message: gMessage): Promise<Id> {
+		const {namespace} = this
 		const id = this.messageId++
-		const payload: gMessage = {...<any>message, id}
+		const payload: gMessage = {...<any>message, id, namespace}
 		await this.postMessage(payload, this.hostOrigin)
 		return id
 	}

@@ -2,6 +2,7 @@
 export interface Message {
 	id?: Id
 	signal: Signal
+	namespace?: string
 }
 
 export type Id = number
@@ -214,6 +215,7 @@ export interface CreatePopupOptions {
 
 export interface HostOptions<gCallee extends HostCallee = HostCallee> {
 	callee: gCallee
+	namespace: string
 	permissions: Permission[]
 	shims?: Partial<HostShims>
 }
@@ -225,6 +227,7 @@ export interface PopupOptions {
 }
 
 export interface ClientOptions {
+	namespace: string
 	hostOrigin: string
 	postMessage: typeof window.postMessage
 	shims?: Partial<ClientShims>

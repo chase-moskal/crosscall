@@ -31,6 +31,7 @@
 
 					// create crosscall client, pass in the iframe's postmessage
 					const crosscallClient = new crosscall.Client({
+						namespace: "crosscall-example",
 						hostOrigin: origin,
 						postMessage
 					})

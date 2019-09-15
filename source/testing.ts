@@ -31,6 +31,7 @@ export interface TestCallable extends ClientCallable {
 const hostUrl = "https://alpha.egg/crosscall-host.html"
 
 export const makeClientOptions = (): ClientOptions => ({
+	namespace: "crosscall-testing",
 	hostOrigin: "https://alpha.egg",
 	postMessage: jest.fn<typeof window.postMessage, any>(),
 	shims: {
@@ -43,6 +44,7 @@ export const makeClientOptions = (): ClientOptions => ({
 })
 
 export const makeHostOptions = () => ({
+	namespace: "crosscall-testing",
 	callee: {
 		topics: {
 			testTopic: {
@@ -90,13 +92,12 @@ export class TestClient<
 >extends Client<gCallable> {
 
 	async testReceiveMessage<gMessage extends Message = Message>(params: {
-		message: gMessage
 		origin: string
-	}): Promise<void> {
+		message: gMessage
+	}): Promise<boolean> {
 		return this.receiveMessage(params)
 	}
 }
-
 
 export const nap = async() => sleep(100)
 export const sleep = async(ms: number) =>

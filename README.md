@@ -26,6 +26,7 @@
   ```js
   // create crosscall host on page, which will be in popup or iframe
   const host = new crosscall.Host({
+    namespace: "crosscall-example",
 
     callee: {
 
@@ -71,6 +72,7 @@
 
   // create crosscall client, which communicates to the host via postMessage
   const client = new crosscall.Client({
+    namespace: "crosscall-example",
     hostOrigin: "http://localhost:8080",
     postMessage
   })
@@ -142,13 +144,14 @@ i'd like the creation of a host to more reflect the renraku api
 
 ```js
 const host = new CrosscallHost({
-	exposures: [{
-		allowed: /^http\:\/\/localhost\:8\d{3}$/i,
-		forbidden: null,
-		exposedTopics: {
-			exampleTopic: {}
-		},
-		exposedEvents: {}
-	}]
+  namespace: "crosscall-example",
+  exposures: [{
+    allowed: /^http\:\/\/localhost\:8\d{3}$/i,
+    forbidden: null,
+    exposedTopics: {
+      exampleTopic: {}
+    },
+    exposedEvents: {}
+  }]
 })
 ```

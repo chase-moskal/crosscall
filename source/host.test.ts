@@ -14,9 +14,23 @@ const goodOrigin = "https://alpha.egg"
 const badOrigin = "https://bravo.egg"
 
 describe("crosscall host", () => {
+	it("ignores messages with the wrong namespace", async() => {
+		const {callee, permissions, shims, ...opts} = makeHostOptions()
+		let handler: Function
+		shims.addEventListener = <any>((eventName: string, handler2: Function) => {
+			handler = handler2
+		})
+		const host = new Host({callee, permissions, shims, ...opts})
+		const messageWasUsed: boolean = await handler({
+			origin: "incorrect-origin",
+			data: "lul"
+		})
+		expect(messageWasUsed).toBe(false)
+	})
+
 	it("sends a wakeup mesesage", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, ...opts})
 		const [message, origin] = <[Message, string]>(<any>shims.postMessage).mock.calls[0]
 		expect(message.id).toBe(0)
 		expect(message.signal).toBe(Signal.Wakeup)
@@ -24,24 +38,25 @@ describe("crosscall host", () => {
 	})
 
 	it("binds message event listener", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, ...opts})
 		expect((<any>shims.addEventListener).mock.calls.length).toBe(1)
 	})
 
 	it("unbinds message event listener on deconstructor", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, ...opts})
 		host.deconstructor()
 		expect((<any>shims.removeEventListener).mock.calls.length).toBe(1)
 	})
 
 	it("responds to handshake message", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, namespace} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, namespace})
 		const id = 123
 		const message: HandshakeRequest = {
 			id,
+			namespace,
 			signal: Signal.HandshakeRequest
 		}
 		const origin = goodOrigin
@@ -52,13 +67,14 @@ describe("crosscall host", () => {
 	})
 
 	it("responds to call messages", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, namespace} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, namespace})
 		const origin = goodOrigin
 
 		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
@@ -78,6 +94,7 @@ describe("crosscall host", () => {
 		await host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 124,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test2",
@@ -96,13 +113,14 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unauthorized handshake requests", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, namespace, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, namespace, ...opts})
 		const origin = badOrigin
 
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
@@ -113,13 +131,14 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unauthorized call requests", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, namespace, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, namespace, ...opts})
 		const origin = badOrigin
 
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "test1",
@@ -130,13 +149,14 @@ describe("crosscall host", () => {
 	})
 
 	it("rejects unknown topics and methods", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
-		const host = new Host({callee, permissions, shims})
+		const {callee, permissions, shims, namespace, ...opts} = makeHostOptions()
+		const host = new Host({callee, permissions, shims, namespace, ...opts})
 		const origin = goodOrigin
 
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "000",
 				method: "test1",
@@ -148,6 +168,7 @@ describe("crosscall host", () => {
 		expect(host.testReceiveMessage({
 			message: <CallRequest>{
 				id: 123,
+				namespace,
 				signal: Signal.CallRequest,
 				topic: "testTopic",
 				method: "000",
@@ -158,7 +179,7 @@ describe("crosscall host", () => {
 	})
 
 	it("throws an error when permissions are ill-defined", async() => {
-		const {callee, permissions, shims} = makeHostOptions()
+		const {callee, permissions, shims, ...opts} = makeHostOptions()
 
 		const overridePermissions = (override: Partial<Permission>) =>
 			permissions.map(permission => ({...permission, ...override}))
@@ -166,13 +187,15 @@ describe("crosscall host", () => {
 		expect(() => new Host({
 			callee,
 			shims,
-			permissions: overridePermissions({allowedTopics: undefined})
+			permissions: overridePermissions({allowedTopics: undefined}),
+			...opts
 		})).toThrow()
 
 		expect(() => new Host({
 			callee,
 			shims,
-			permissions: overridePermissions({allowedTopics: undefined})
+			permissions: overridePermissions({allowedTopics: undefined}),
+			...opts
 		})).toThrow()
 	})
 })
