@@ -140,18 +140,22 @@
 
 ## notes for future refactors
 
-i'd like the creation of a host to more reflect the renraku api
+- i'd like the creation of a host to more reflect the renraku api
 
-```js
-const host = new CrosscallHost({
-  namespace: "crosscall-example",
-  exposures: [{
-    allowed: /^http\:\/\/localhost\:8\d{3}$/i,
-    forbidden: null,
-    exposedTopics: {
-      exampleTopic: {}
-    },
-    exposedEvents: {}
-  }]
-})
-```
+    ```js
+    const host = new CrosscallHost({
+      namespace: "crosscall-example",
+      exposures: [{
+        allowed: /^http\:\/\/localhost\:8\d{3}$/i,
+        forbidden: null,
+        exposedTopics: {
+          exampleTopic: {}
+        },
+        exposedEvents: {}
+      }]
+    })
+    ```
+
+- probably should add `PreMessage` interface where `id` and `namespace` are required
+
+- should consider replacing postMessage usage with a custom channel, to avoid intefering with other systems using postMessage
