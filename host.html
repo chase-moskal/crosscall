@@ -6,36 +6,35 @@
 	</head>
 	<body>
 		<h1>crosscall host</h1>
-		<script src="node_modules/requirejs/require.js"></script>
-		<script>
-			require(["./dist/host"], ({default: CrosscallHost, ...mod}) => {
 
-				const crosscallHost = new CrosscallHost({
-					namespace: "crosscall-example",
+		<script type="module">
+			import {Host as CrosscallHost} from "./dist/host.js"
 
-					// functionality exposed for clients to call
-					callee: {
-						topics: {
-							testTopic: {
-								async test1(x) { return x },
-								async test2(x) { return x + 1 },
-								async test3() { return Date.now() }
-							}
-						},
-						events: {}
+			const crosscallHost = new CrosscallHost({
+				namespace: "crosscall-example",
+
+				// functionality exposed for clients to call
+				callee: {
+					topics: {
+						testTopic: {
+							async test1(x) { return x },
+							async test2(x) { return x + 1 },
+							async test3() { return Date.now() }
+						}
 					},
+					events: {}
+				},
 
-					// each client origin gets its own callee access permission
-					permissions: [{
-						origin: new RegExp(window.location.origin, "i"),
-						allowedTopics: {
-							testTopic: ["test1", "test2", "test3"]
-						},
-						allowedEvents: []
-					}]
-				})
-
+				// each client origin gets its own callee access permission
+				permissions: [{
+					origin: new RegExp(window.location.origin, "i"),
+					allowedTopics: {
+						testTopic: ["test1", "test2", "test3"]
+					},
+					allowedEvents: []
+				}]
 			})
 		</script>
+		<!-- <script src="https://unpkg.com/es-module-shims@0.4.5/dist/es-module-shims.js"></script> -->
 	</body>
 </html>

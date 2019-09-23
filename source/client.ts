@@ -191,7 +191,8 @@ export class Client<gCallable extends ClientCallable = ClientCallable> {
 	}
 
 	private readonly messageHandlers: ClientMessageHandlers = {
-		[Signal.Wakeup]: async(message: Message): Promise<void> => {
+		[Signal.Error]: async(message: Message): Promise<void> => console.error(message),
+		[Signal.Wakeup]: async(): Promise<void> => {
 			const {allowedTopics, allowedEvents}
 				= await this.request<HandshakeRequest, HandshakeResponse>({
 					signal: Signal.HandshakeRequest

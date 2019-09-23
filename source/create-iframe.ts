@@ -1,11 +1,20 @@
 
 import {CreateIframeOptions} from "./interfaces.js"
 
-export function createIframe({
+export async function createIframe({
 	url,
 	documentCreateElement = document.createElement.bind(document),
 	documentBodyAppendChild = document.body.appendChild.bind(document.body)
 }: CreateIframeOptions) {
+
+	try {
+		const precheck = await fetch(url)
+		if (precheck.status !== 200)
+			console.error(`createIframe failed to load "${url}"`)
+	}
+	catch (error) {
+		console.error(`createIframe failed to load "${url}": ${error.message}`)
+	}
 
 	const iframe = documentCreateElement("iframe")
 	iframe.style.display = "none"

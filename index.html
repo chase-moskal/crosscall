@@ -18,43 +18,44 @@
 		<a href="https://github.com/chase-moskal/crosscall">crosscall on github</a>
 
 		<script src="node_modules/requirejs/require.js"></script>
-		<script>
-			require(["./dist/index"], crosscall => {
-				(async() => {
-					const {origin, pathname} = window.location
-					const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
+		<script type="module">
+			import {createIframe} from "./dist/create-iframe.js"
+			import {Client as CrosscallClient} from "./dist/client.js"
+			(async() => {
+				const {origin, pathname} = window.location
+				const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
 
-					// create host iframe
-					const {postMessage} = crosscall.createIframe({
-						url: origin + dirname + "/host.html"
-					})
+				// create host iframe
+				const {postMessage} = await createIframe({
+					url: "http://localhost:9000"
+					// url: origin + dirname + "/host.html"
+				})
 
-					// create crosscall client, pass in the iframe's postmessage
-					const crosscallClient = new crosscall.Client({
-						namespace: "crosscall-example",
-						hostOrigin: origin,
-						postMessage
-					})
+				// create crosscall client, pass in the iframe's postmessage
+				const crosscallClient = new CrosscallClient({
+					namespace: "crosscall-example",
+					hostOrigin: origin,
+					postMessage
+				})
 
-					// wait for the callable object to become available
-					const {topics, events} = await crosscallClient.callable
+				// wait for the callable object to become available
+				const {topics, events} = await crosscallClient.callable
 
-					// seamlessly utilize the host's async functionality
-					const result1 = await topics.testTopic.test1(4)
-					const result2 = await topics.testTopic.test2(4)
-					console.log(result1) //> 4
-					console.log(result2) //> 5
+				// seamlessly utilize the host's async functionality
+				const result1 = await topics.testTopic.test1(4)
+				const result2 = await topics.testTopic.test2(4)
+				console.log(result1) //> 4
+				console.log(result2) //> 5
 
-					// continually update results from the host
-					const timekeeper = document.querySelectorAll(".timekeeper")
-					async function updateTime() {
-						const time = await topics.testTopic.test3()
-						for (const keeper of timekeeper) keeper.textContent = time
-					}
-					updateTime()
-					setInterval(updateTime, 40)
-				})()
-			})
+				// continually update results from the host
+				const timekeeper = document.querySelectorAll(".timekeeper")
+				async function updateTime() {
+					const time = await topics.testTopic.test3()
+					for (const keeper of timekeeper) keeper.textContent = time
+				}
+				updateTime()
+				setInterval(updateTime, 40)
+			})()
 		</script>
 	</body>
 </html>
