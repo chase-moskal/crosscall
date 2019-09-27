@@ -13,5 +13,13 @@
 		"*.log*": true
 	},
 
+	"files.watcherExclude": {
+		"dist/**": true,
+		"source-a*/**": true,
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/*/**": true,
+	},
+
 	"typescript.tsdk": "node_modules/typescript/lib/"
 }
