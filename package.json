@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.10",
+	"version": "0.0.6-dev.11",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -43,7 +43,7 @@
 		"npm-run-all": "^4.1.5",
 		"requirejs": "^2.3.6",
 		"rimraf": "^3.0.0",
-		"serve": "^11.1.0",
+		"serve": "^11.2.0",
 		"typescript": "^3.6.3"
 	}
 }
