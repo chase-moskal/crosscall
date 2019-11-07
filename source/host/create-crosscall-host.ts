@@ -2,115 +2,85 @@
 import {DisabledLogger} from "renraku/dist/toolbox/logging.js"
 
 import {
-	Id,
 	Signal,
-	Message,
-	HostShims,
 	HostState,
 	HostOptions,
-	ErrorMessage,
 	ListenerData,
 } from "../interfaces.js"
 
 import {error} from "../error.js"
+import {defaultShims} from "./defaults.js"
+import {prepareSendMessage} from "./prepare-send-message.js"
 import {prepareMessageHandlers} from "./prepare-message-handlers.js"
+import {prepareMessageListener} from "./prepare-message-listener.js"
 
 export function createCrosscallHost({
 	namespace,
 	exposures,
 	debug = false,
-	shims: rawShims = {},
+	shims: moreShims = {},
 	logger = new DisabledLogger,
 }: HostOptions) {
 
-	const shims = {...defaultShims, ...rawShims}
+	//
+	// preparing stuff
+	//
+
+	// mixin shim defaults
+	const shims = {...defaultShims, ...moreShims}
 	if (!shims.postMessage) throw error(`crosscall host has invalid `
 		+ `postmessage (could not find window parent or opener)`)
 
+	// establish initial values for our host state
 	const state: HostState = {
 		messageId: 0,
 		listenerId: 0,
 		listeners: new Map<number, ListenerData>()
 	}
 
+	// function to send messages
+	const sendMessage = prepareSendMessage({state, shims, namespace})
+
+	// handlers for each type of incoming message
 	const messageHandlers = prepareMessageHandlers({
 		state,
 		exposures,
-		sendMessage
+		sendMessage,
 	})
 
-	async function sendMessage<gMessage extends Message = Message>({
-		origin,
-		message
-	}: {
-		origin: string
-		message: gMessage
-	}): Promise<Id> {
-		const id = state.messageId++
-		const payload: gMessage = {...<any>message, id, namespace}
-		await shims.postMessage(payload, origin)
-		return id
-	}
+	// message event listener added to the window
+	const messageListener = prepareMessageListener({
+		namespace,
+		sendMessage,
+		messageHandlers,
+	})
 
-	async function handleMessageEvent({
-		origin,
-		data: message
-	}: MessageEvent) {
+	//
+	// actual initialization
+	//
 
-		const isMessageForUs = typeof message === "object"
-			&& message.namespace === namespace
+	// listen for messages from clients
+	shims.addEventListener("message", messageListener, false)
 
-		if (isMessageForUs) {
-			try {
-				const handler = messageHandlers[message.signal]
-				if (!handler) throw new Error(
-					`unknown message signal "${message.signal}"`
-				)
-				await handler({message, origin})
-			}
-			catch (error) {
-				const errorResponse: ErrorMessage = {
-					signal: Signal.Error,
-					error: error.message,
-					associate: message.id
-				}
-				sendMessage({origin, message: errorResponse})
-				throw error
-			}
-		}
-
-		return isMessageForUs
-	}
-
-	// listen for client messages
-	shims.addEventListener("message", handleMessageEvent, false)
-
-	// send wakeup message to client
+	// send initial wakeup message to client
 	sendMessage({
 		origin: "*",
 		message: {signal: Signal.Wakeup}, 
 	})
 
+	//
+	// return a method to stop
+	//
+
 	return {
 		stop() {
 
 			// stop listening to client messages
-			shims.removeEventListener("message", handleMessageEvent)
+			shims.removeEventListener("message", messageListener)
 
 			// cleanup all existing event listeners
 			for (const [, listenerData] of state.listeners.entries())
 				listenerData.cleanup()
 		}
 	}
-}
-
-const defaultShims: HostShims = {
-	postMessage: (() => {
-		const {parent, opener} = window
-		if (parent && parent !== window) return parent.postMessage.bind(parent)
-		else if (opener && opener !== window) return opener.postMessage.bind(opener)
-		else return null
-	})(),
-	addEventListener: window.addEventListener.bind(window),
-	removeEventListener: window.removeEventListener.bind(window)
 }

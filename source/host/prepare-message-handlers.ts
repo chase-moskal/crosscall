@@ -24,7 +24,7 @@ import {
 	getListenerData,
 } from "./validation.js"
 
-export function prepareMessageHandlers({
+export const prepareMessageHandlers = ({
 	state,
 	exposures,
 	sendMessage,
@@ -32,7 +32,7 @@ export function prepareMessageHandlers({
 	state: HostState
 	sendMessage: SendMessage
 	exposures: {[key: string]: Exposure<any, any>}
-}): HostMessageHandlers {return {
+}): HostMessageHandlers => ({
 
 	/**
 	 * Call request
@@ -118,4 +118,4 @@ export function prepareMessageHandlers({
 			}
 		})
 	}
-}}
+})

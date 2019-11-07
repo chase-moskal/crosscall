@@ -1,6 +1,6 @@
 
-import {Methods} from "renraku/dist/interfaces.js"
 import {Logger} from "renraku/dist/toolbox/logging.js"
+import {Methods, Shape} from "renraku/dist/interfaces.js"
 
 //
 // COMMON TYPES
@@ -38,6 +38,18 @@ export type Api<X extends {} = {}> = {
 
 export type ApiToExposures<A extends Api<A> = {}> = {
 	[P in keyof A]: Exposure<A[P]["methods"], A[P]["events"]>
+}
+
+export type ApiShape1<A extends Api<A> = Api> = {
+	[P in keyof A]: {
+		methods: Shape<A[P]["methods"]>
+	}
+}
+
+export type ApiShape<A extends Api<A> = Api> = {
+	[P in keyof A]: {
+		[X in keyof A[P]]: Shape<A[P][X]>
+	}
 }
 
 export interface EventMediator<GListener extends Listener = Listener> {
@@ -90,6 +102,20 @@ export interface ClientShims {
 	removeChild: typeof document.body.removeChild
 	addEventListener: typeof window.addEventListener
 	removeEventListener: typeof window.removeEventListener
+}
+
+export interface ClientOptions<A extends Api<A> = {}> {
+	shape: ApiShape<A>
+	namespace: string
+	hostOrigin: string
+	postMessage: typeof window.postMessage
+	shims?: Partial<ClientShims>
+}
+
+export interface ClientState {
+	messageId: number
+	iframe: HTMLIFrameElement
+	requests: Map<Id, PendingRequest>
 }
 
 //
