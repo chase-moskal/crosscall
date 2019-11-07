@@ -1,4 +1,102 @@
 
+import {Methods} from "renraku/dist/interfaces.js"
+import {Logger} from "renraku/dist/toolbox/logging.js"
+
+//
+// COMMON TYPES
+// ============
+//
+
+export {Methods}
+
+export type Events<X extends {} = {}> = {
+	[P in keyof X]: EventMediator
+}
+
+export interface CorsPermissions {
+	allowed: RegExp
+	forbidden: RegExp
+}
+
+export interface Exposure<
+	M extends Methods<M> = Methods,
+	E extends Events<E> = Events
+> {
+	methods: M
+	events: E
+	cors: CorsPermissions
+}
+
+export interface Topic {
+	events: Events
+	methods: Methods
+}
+
+export type Api<X extends {} = {}> = {
+	[name in keyof X]: Topic
+}
+
+export type ApiToExposures<A extends Api<A> = {}> = {
+	[P in keyof A]: Exposure<A[P]["methods"], A[P]["events"]>
+}
+
+export interface EventMediator<GListener extends Listener = Listener> {
+	listen(listener: GListener): void | Promise<void>
+	unlisten(listener: GListener): void | Promise<void>
+}
+
+export interface Callable {
+	events: Events
+	methods: Methods
+}
+
+//
+// HOST TYPES
+// ==========
+//
+
+export interface HostOptions<A extends Api<A> = {}> {
+	debug: boolean
+	namespace: string
+	exposures: ApiToExposures<A>
+	logger?: Logger
+	shims?: Partial<HostShims>
+}
+
+export interface HostShims {
+	postMessage: typeof window.parent.postMessage
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+}
+
+export interface HostState {
+	messageId: number
+	listenerId: number
+	listeners: Map<number, ListenerData>
+}
+
+export interface SendMessage<M extends Message = Message> {
+	(o: {origin: string; message: M}): Promise<Id>
+}
+
+//
+// CLIENT TYPES
+// ============
+//
+
+export interface ClientShims {
+	createElement: typeof document.createElement
+	appendChild: typeof document.body.appendChild
+	removeChild: typeof document.body.removeChild
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+}
+
+//
+// COMMON INTERNALS
+// ================
+//
+
 export interface Message {
 	id?: Id
 	signal: Signal
@@ -7,29 +105,15 @@ export interface Message {
 
 export type Id = number
 
-/**
- * SIGNAL ENUM
- *  - types of messages transferred between client and host
- */
+export interface Associated {
+	associate: Id
+}
+
 export const enum Signal {
-
-	/** indicates an error */
 	Error,
-
-	/** host broadcasts wakeup call when it finishes loading in the iframe */
 	Wakeup,
 
-	/** client sends a handshake request when it hears the wakeup call */
-	HandshakeRequest,
-
-	/** host responds to the handshake, and communicates which functions are
-		allowed to it */
-	HandshakeResponse,
-
-	/** client wants to call functionality on the host's callee */
 	CallRequest,
-
-	/** host responds with the results of a client call */
 	CallResponse,
 
 	Event,
@@ -39,14 +123,6 @@ export const enum Signal {
 	EventUnlistenResponse
 }
 
-/**
- * - object which is associated with a message
- * - eg response messages may implement this
- */
-export interface Associated {
-	associate: Id
-}
-
 export interface ResponseMessage extends Message, Associated {}
 
 export interface ErrorMessage extends Message, Partial<Associated> {
@@ -54,19 +130,16 @@ export interface ErrorMessage extends Message, Partial<Associated> {
 	error: string
 }
 
-export interface HandshakeRequest extends Message {
-	signal: Signal.HandshakeRequest
-}
-
 export interface CallRequest extends Message {
 	signal: Signal.CallRequest
 	topic: string
-	method: string
+	func: string
 	params: any[]
 }
 
 export interface EventListenRequest extends Message {
 	signal: Signal.EventListenRequest
+	topic: string
 	eventName: string
 }
 
@@ -95,108 +168,17 @@ export interface PendingRequest {
 	reject: any
 }
 
-export interface AllowedTopics {
-	[topic: string]: AllowedMethods
-}
-
-export type AllowedMethods = string[]
-export type AllowedEvents = string[]
-
-export interface HandshakeResponse extends ResponseMessage {
-	signal: Signal.HandshakeResponse
-	allowedTopics: AllowedTopics
-	allowedEvents: AllowedEvents
-}
-
 export interface CallResponse<R = any> extends ResponseMessage {
 	signal: Signal.CallResponse
 	result: R
-}
-
-export interface Permission {
-	origin: RegExp
-	allowedTopics: AllowedTopics
-	allowedEvents: string[]
-}
-
-export interface HandleMessageParams<gMessage extends Message = Message> {
-	message: gMessage
-	origin: string
-	permission: Permission
-}
-
-export interface HostMessageHandlers {
-	[key: string]: (params: HandleMessageParams) => Promise<void>
-}
-
-export interface ClientMessageHandlers {
-	[key: string]: (message: Message) => Promise<void>
-}
-
-export interface ClientCallable {
-	topics: CallableTopics
-	events: ClientEvents
-}
-
-export interface HostCallee {
-	topics: CalleeTopics
-	events: HostEvents
-}
-
-export interface CallableTopics {
-	[topic: string]: CallableTopic
-}
-
-export interface CalleeTopics {
-	[topic: string]: CalleeTopic
-}
-
-export interface CallableTopic {
-	[method: string]: CallableMethod
-}
-
-export type CallableMethod = (...args: any[]) => Promise<any>
-
-export interface CalleeTopic {
-	[method: string]: CalleeMethod
-}
-
-export type CalleeMethod = (...args: any[]) => any
-
-export interface HostShims {
-	postMessage: typeof window.parent.postMessage
-	addEventListener: typeof window.addEventListener
-	removeEventListener: typeof window.removeEventListener
-}
-
-export interface ClientShims {
-	createElement: typeof document.createElement
-	appendChild: typeof document.body.appendChild
-	removeChild: typeof document.body.removeChild
-	addEventListener: typeof window.addEventListener
-	removeEventListener: typeof window.removeEventListener
 }
 
 export interface Listener<EventPayload extends Object = any> {
 	(event: EventPayload): void
 }
 
-export interface HostEventMediator<GListener extends Listener = Listener> {
-	listen(listener: GListener): void
-	unlisten(listener: GListener): void
-}
-
-export interface ClientEventMediator<GListener extends Listener = Listener> {
-	listen(listener: GListener): Promise<void>
-	unlisten(listener: GListener): Promise<void>
-}
-
-export interface HostEvents {
-	[eventName: string]: HostEventMediator
-}
-
-export interface ClientEvents {
-	[eventName: string]: ClientEventMediator
+export interface ClientMessageHandlers {
+	[key: string]: (message: Message) => Promise<void>
 }
 
 export interface CreateIframeOptions {
@@ -213,22 +195,22 @@ export interface CreatePopupOptions {
 	windowOpen?: typeof window.open
 }
 
-export interface HostOptions<gCallee extends HostCallee = HostCallee> {
-	callee: gCallee
-	namespace: string
-	permissions: Permission[]
-	shims?: Partial<HostShims>
-}
-
 export interface PopupOptions {
 	target?: string
 	features?: string
 	replace?: boolean
 }
 
-export interface ClientOptions {
-	namespace: string
-	hostOrigin: string
-	postMessage: typeof window.postMessage
-	shims?: Partial<ClientShims>
+export interface HandleMessageParams<gMessage extends Message = Message> {
+	message: gMessage
+	origin: string
+}
+
+export interface HostMessageHandlers {
+	[key: string]: (params: HandleMessageParams) => Promise<void>
+}
+
+export interface ListenerData {
+	cleanup: () => void
+	exposure: Exposure<any, any>
 }

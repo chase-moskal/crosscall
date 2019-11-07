@@ -45,5 +45,8 @@
 		"rimraf": "^3.0.0",
 		"serve": "^11.2.0",
 		"typescript": "^3.6.3"
+	},
+	"dependencies": {
+		"renraku": "0.0.0-dev.16"
 	}
 }
