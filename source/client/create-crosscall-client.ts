@@ -5,6 +5,7 @@ import {
 	ClientState,
 	ClientShims,
 	ClientOptions,
+	Client,
 	PendingRequest,
 } from "../interfaces.js"
 
@@ -20,7 +21,7 @@ export function createCrosscallClient<A extends Api<A>>({
 	namespace,
 	hostOrigin,
 	shims: moreShims = {},
-}: ClientOptions<A>) {
+}: ClientOptions<A>): Client<A> {
 
 	//
 	// preparing stuff

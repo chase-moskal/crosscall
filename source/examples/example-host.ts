@@ -1,6 +1,6 @@
 
 import {NuclearApi} from "./example-common.js"
-import {Events, Methods, Api} from "../interfaces.js"
+import {Events, Methods, Api, Listener} from "../interfaces.js"
 import {createCrosscallHost} from "../host/create-crosscall-host.js"
 
 export class ReactorMethods implements Methods<ReactorMethods> {
@@ -14,12 +14,8 @@ export class ReactorMethods implements Methods<ReactorMethods> {
 
 export class ReactorEvents implements Events<ReactorEvents> {
 	alarm = {
-		listen() {},
-		unlisten() {}
-	}
-	powerReport = {
-		listen() {},
-		unlisten() {}
+		listen: (listener: Listener) => {},
+		unlisten: (listener: Listener) => {}
 	}
 }
 

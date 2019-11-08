@@ -2,7 +2,6 @@
 import {Signal, Listener} from "./interfaces.js"
 import {
 	nap,
-	goodOrigin,
 	makeBridgedSetup,
 } from "./testing.js"
 
@@ -18,45 +17,39 @@ describe("crosscall host/client integration", () => {
 		expect((<any>hostPostMessage).mock.calls[0][0].signal).toBe(Signal.Wakeup)
 	})
 
-	test("handshake is exchanged", async() => {
-		const {hostOptions, clientOptions} = makeBridgedSetup()
-		const {postMessage: hostPostMessage} = hostOptions.shims
-		const {postMessage: clientPostMessage} = clientOptions
-		await nap()
-		expect((<any>clientPostMessage).mock.calls[0][0].signal).toBe(Signal.HandshakeRequest)
-		expect((<any>hostPostMessage).mock.calls[1][0].signal).toBe(Signal.HandshakeResponse)
-	})
-
 	test("callable resolves", async() => {
 		const {client} = makeBridgedSetup()
-		const callable = await client.callable
-		expect(callable).toBeDefined()
-		expect(callable.topics.testTopic).toBeDefined()
-		expect(callable.topics.testTopic).toHaveProperty("test1")
-		expect(callable.topics.testTopic).toHaveProperty("test2")
+		const nuclear = await client.callable
+		expect(nuclear).toBeDefined()
+		expect(nuclear.reactor).toBeDefined()
+		expect(nuclear.reactor.methods.generatePower).toBeDefined()
+		expect(nuclear.reactor.methods.radioactiveMeltdown).toBeDefined()
 	})
 
 	test("end to end call requests", async() => {
 		const {client} = makeBridgedSetup()
-		const {testTopic} = (await client.callable).topics
-		const result = await testTopic.test1(5)
-		expect(result).toBe(5)
-		const result2 = await testTopic.test2(5)
-		expect(result2).toBe(6)
+		const {reactor} = await client.callable
+		
+		const result1 = await reactor.methods.generatePower(1, 2)
+		expect(result1).toBe(3)
+	
+		const result2 = await reactor.methods.generatePower(2, 3)
+		expect(result2).toBe(5)
 	})
 
 	test("client can listen and unlisten to host events", async() => {
-		const {client, host} = makeBridgedSetup()
-		const eventPayload = {alpha: true}
-		const {testEvent} = (await client.callable).events
-		let result
-		const listener: Listener = event => { result = event.alpha }
-		await testEvent.listen(listener)
-		await host.testFireEvent(0, eventPayload, goodOrigin)
+		const {client, dispatchAlarmEvent} = makeBridgedSetup()
+		const {reactor} = await client.callable
+
+		let result: boolean = false
+		const listener: Listener = event => { result= event.alpha }
+		await reactor.events.alarm.listen(listener)
+		dispatchAlarmEvent({alpha: true})
 		expect(result).toBe(true)
+
 		result = false
-		await testEvent.unlisten(listener)
-		await host.testFireEvent(0, eventPayload, goodOrigin)
+		await reactor.events.alarm.unlisten(listener)
+		dispatchAlarmEvent({alpha: true})
 		await nap()
 		expect(result).toBe(false)
 	})

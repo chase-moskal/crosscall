@@ -12,8 +12,7 @@ export interface NuclearApi extends Api<NuclearApi> {
 export const nuclearShape: ApiShape<NuclearApi> = {
 	reactor: {
 		events: {
-			alarm: true,
-			powerReport: true,
+			alarm: true
 		},
 		methods: {
 			generatePower: true,

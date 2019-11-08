@@ -3,6 +3,7 @@ import {DisabledLogger} from "renraku/dist/toolbox/logging.js"
 
 import {
 	Api,
+	Host,
 	Signal,
 	HostState,
 	HostOptions,
@@ -21,7 +22,7 @@ export function createCrosscallHost<A extends Api<A> = Api>({
 	debug = false,
 	shims: moreShims = {},
 	logger = new DisabledLogger,
-}: HostOptions<A>) {
+}: HostOptions<A>): Host {
 
 	//
 	// preparing stuff

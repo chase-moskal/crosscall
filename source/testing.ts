@@ -1,36 +1,13 @@
 
-import {Host} from "./host.js"
-import {Client} from "./client.js"
-import {
-	Message,
-	HostCallee,
-	ClientOptions,
-	ClientCallable,
-} from "./interfaces"
+import {DisabledLogger} from "renraku/dist/toolbox/logging.js"
+import {createCrosscallHost} from "./host/create-crosscall-host.js"
+import {NuclearApi, nuclearShape} from "./examples/example-common.js"
+import {ReactorMethods, ReactorEvents} from "./examples/example-host.js"
+import {createCrosscallClient } from "./client/create-crosscall-client.js"
+import {HostOptions, ClientOptions, Message, Client, Host, Events, Listener} from "./interfaces.js"
 
-export type TestListener = (value: number) => void
-
-export interface TestCallee extends HostCallee {
-	topics: {
-		testTopic: {
-			test1(x: number): Promise<number>
-			test2(x: number): number
-		}
-	}
-}
-
-export interface TestCallable extends ClientCallable {
-	topics: {
-		testTopic: {
-			test1(x: number): Promise<number>
-			test2(x: number): Promise<number>
-		}
-	}
-}
-
-const hostUrl = "https://alpha.egg/crosscall-host.html"
-
-export const makeClientOptions = (): ClientOptions => ({
+export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
+	shape: nuclearShape,
 	namespace: "crosscall-testing",
 	hostOrigin: "https://alpha.egg",
 	postMessage: jest.fn<typeof window.postMessage, any>(),
@@ -43,61 +20,26 @@ export const makeClientOptions = (): ClientOptions => ({
 	}
 })
 
-export const makeHostOptions = () => ({
+export const makeHostOptions = (): HostOptions<NuclearApi> => ({
+	debug: true,
+	logger: new DisabledLogger(),
 	namespace: "crosscall-testing",
-	callee: {
-		topics: {
-			testTopic: {
-				async test1(x: number) { return x },
-				test2(x: number) { return x + 1 }
-			}
-		},
-		events: {
-			testEvent: {
-				listen: <any>jest.fn(),
-				unlisten: <any>jest.fn()
+	exposures: {
+		reactor: {
+			methods: new ReactorMethods(),
+			events: new ReactorEvents(),
+			cors: {
+				allowed: /^https:\/\/alpha\.egg$/i,
+				forbidden: null
 			}
 		}
 	},
-	permissions: [{
-		origin: /^https:\/\/alpha.egg$/i,
-		allowedTopics: {
-			testTopic: ["test1", "test2"]
-		},
-		allowedEvents: ["testEvent"]
-	}],
 	shims: {
 		postMessage: <typeof window.postMessage>jest.fn(),
 		addEventListener: <typeof window.addEventListener>jest.fn(),
 		removeEventListener: <typeof window.removeEventListener>jest.fn()
 	}
 })
-
-export class TestHost<gCallee extends HostCallee = HostCallee> extends Host<gCallee> {
-
-	async testReceiveMessage<gMessage extends Message = Message>(params: {
-		message: gMessage
-		origin: string
-	}) {
-		return this.receiveMessage(params)
-	}
-
-	async testFireEvent(listenerId: number, event: any, origin: string) {
-		return this.fireEvent(listenerId, event, origin)
-	}
-}
-
-export class TestClient<
-	gCallable extends ClientCallable = any
->extends Client<gCallable> {
-
-	async testReceiveMessage<gMessage extends Message = Message>(params: {
-		origin: string
-		message: gMessage
-	}): Promise<boolean> {
-		return this.receiveMessage(params)
-	}
-}
 
 export const nap = async() => sleep(100)
 export const sleep = async(ms: number) =>
@@ -106,18 +48,52 @@ export const sleep = async(ms: number) =>
 export const goodOrigin = "https://alpha.egg"
 export const badOrigin = "https://beta.bad"
 
-export const makeBridgedSetup = () => {
-	const clientOptions = makeClientOptions()
-	const hostOptions = makeHostOptions()
+export function mockReactorEvents(): {
+	dispatchAlarmEvent: (event: any) => void
+	reactorEvents: Events<ReactorEvents>
+} {
+	let subs: Listener[] = []
+	return {
+		reactorEvents: {
+			alarm: {
+				listen: listener => {
+					subs.push(listener)
+				},
+				unlisten: listener => {
+					subs = subs.filter(sub => sub !== listener)
+				}
+			}
+		},
+		dispatchAlarmEvent: (event: any) => {
+			for (const sub of subs) sub(event)
+		}
+	}
+}
 
-	let client: TestClient<TestCallable>
-	let host: TestHost<TestCallee>
+export const makeBridgedSetup = () => {
+	const hostOptions = makeHostOptions()
+	const clientOptions = makeClientOptions()
+	const {reactorEvents, dispatchAlarmEvent} = mockReactorEvents()
+	hostOptions.exposures.reactor.events = reactorEvents
+
+	let host: Host<NuclearApi>
+	let client: Client<NuclearApi>
+
+	// get message senders
+	let messageHost: (o: Partial<MessageEvent>) => void
+	let messageClient: (o: Partial<MessageEvent>) => void
+	hostOptions.shims.addEventListener = jest.fn(
+		async(eventName, func: any) => messageHost = func
+	)
+	clientOptions.shims.addEventListener = jest.fn(
+		async(eventName, func: any) => messageClient = func
+	)
 
 	// route host output to client input
 	hostOptions.shims.postMessage = <any><typeof window.postMessage>jest.fn(
 		async(message: Message, origin: string) => {
 			await sleep(0)
-			await client.testReceiveMessage({message, origin: goodOrigin})
+			messageClient({origin: goodOrigin, data: message})
 		}
 	)
 
@@ -125,13 +101,13 @@ export const makeBridgedSetup = () => {
 	clientOptions.postMessage = (<typeof window.postMessage>jest.fn(
 		<any>(async(message: Message, origin: string) => {
 			await sleep(0)
-			await host.testReceiveMessage({message, origin: goodOrigin})
+			messageHost({origin: goodOrigin, data: message})
 		})
 	))
 
 	// client created first, the way iframes work
-	client = new TestClient<TestCallable>(clientOptions)
-	host = new TestHost<TestCallee>(hostOptions)
+	client = createCrosscallClient<NuclearApi>(clientOptions)
+	host = createCrosscallHost<NuclearApi>(hostOptions)
 
-	return {client, host, clientOptions, hostOptions}
+	return {client, host, clientOptions, hostOptions, dispatchAlarmEvent}
 }

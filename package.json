@@ -17,15 +17,17 @@
 	],
 	"files": [
 		"dist",
+		"dist-cjs",
 		"source"
 	],
 	"scripts": {
 		"prepare": "run-s build test",
-		"build": "rimraf dist && mkdirp dist dist/cjs && run-p build-esm build-cjs",
+		"build": "rimraf dist && mkdirp dist dist-cjs && run-p build-esm build-cjs",
 		"build-esm": "tsc",
-		"build-cjs": "tsc --module commonjs --outDir dist/cjs",
+		"build-cjs": "tsc --module commonjs --outDir dist-cjs && run-s replace-cjs-imports",
+		"replace-cjs-imports": "replace-in-files --regex='renraku\\/dist\\/' --replacement='renraku/dist-cjs/' 'dist-cjs/**/*.js'",
 		"start": "serve",
-		"test": "jest --verbose dist/cjs"
+		"test": "jest --verbose dist-cjs"
 	},
 	"repository": {
 		"type": "git",
@@ -36,15 +38,16 @@
 	},
 	"homepage": "https://github.com/chase-moskal/crosscall#readme",
 	"devDependencies": {
-		"@types/jest": "^24.0.18",
+		"@types/jest": "^24.0.22",
 		"jest": "^24.9.0",
 		"mkdirp": "^0.5.1",
-		"mock-local-storage": "^1.1.8",
+		"mock-local-storage": "^1.1.10",
 		"npm-run-all": "^4.1.5",
+		"replace-in-files-cli": "^0.3.0",
 		"requirejs": "^2.3.6",
 		"rimraf": "^3.0.0",
 		"serve": "^11.2.0",
-		"typescript": "^3.6.3"
+		"typescript": "^3.7.2"
 	},
 	"dependencies": {
 		"renraku": "0.0.0-dev.16"

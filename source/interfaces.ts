@@ -68,12 +68,16 @@ export interface Callable {
 // ==========
 //
 
-export interface HostOptions<A extends Api<A> = {}> {
+export interface HostOptions<A extends Api<A> = Api> {
 	debug: boolean
 	namespace: string
 	exposures: ApiToExposures<A>
 	logger?: Logger
 	shims?: Partial<HostShims>
+}
+
+export interface Host<A extends Api<A> = Api> {
+	stop(): void
 }
 
 export interface HostShims {
@@ -105,12 +109,17 @@ export interface ClientShims {
 	removeEventListener: typeof window.removeEventListener
 }
 
-export interface ClientOptions<A extends Api<A> = {}> {
+export interface ClientOptions<A extends Api<A> = Api> {
 	shape: ApiShape<A>
 	namespace: string
 	hostOrigin: string
 	postMessage: typeof window.postMessage
 	shims?: Partial<ClientShims>
+}
+
+export interface Client<A extends Api<A> = Api> {
+	stop(): void
+	callable: Promise<A>
 }
 
 export interface ClientState {
