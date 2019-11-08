@@ -11,8 +11,8 @@ import {
 
 import {defaultShims} from "./defaults.js"
 import {makeCallable} from "./make-callable.js"
-import {prepareRequest as prepareRequestFunction} from "./prepare-request.js"
 import {ListenerOrganizer} from "./listener-organizer.js"
+import {prepareRequestFunction} from "./prepare-request-function.js"
 import {prepareMessageHandlers} from "./prepare-message-handlers.js"
 import {prepareMessageListener} from "./prepare-message-listener.js"
 
@@ -20,6 +20,7 @@ export function createCrosscallClient<A extends Api<A>>({
 	shape,
 	namespace,
 	hostOrigin,
+	postMessage,
 	shims: moreShims = {},
 }: ClientOptions<A>): Client<A> {
 

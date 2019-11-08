@@ -7,7 +7,7 @@ import {
 	ResponseMessage,
 } from "../interfaces.js"
 
-export function prepareRequest({
+export function prepareRequestFunction({
 	state,
 	namespace,
 	hostOrigin,
@@ -18,6 +18,8 @@ export function prepareRequest({
 	state: ClientState
 	postMessage: typeof window.postMessage
 }): RequestFunc {
+	if (!postMessage)
+		throw new Error(`crosscall client requires postMessage`)
 
 	async function sendMessage<M extends Message = Message>(
 		message: Message
