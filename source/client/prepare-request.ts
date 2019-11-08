@@ -1,0 +1,42 @@
+
+import {
+	Id,
+	Message,
+	ClientState,
+	RequestFunc,
+	ResponseMessage,
+} from "../interfaces.js"
+
+export function prepareRequest({
+	state,
+	namespace,
+	hostOrigin,
+	postMessage,
+}: {
+	namespace: string
+	hostOrigin: string
+	state: ClientState
+	postMessage: typeof window.postMessage
+}): RequestFunc {
+
+	async function sendMessage<M extends Message = Message>(
+		message: Message
+	): Promise<Id> {
+		const id = state.messageId++
+		const payload: M = {...<any>message, id, namespace}
+		await postMessage(payload, hostOrigin)
+		return id
+	}
+
+	return async function request<
+		M extends Message = Message,
+		R extends ResponseMessage = ResponseMessage
+	>(
+		message: M
+	): Promise<R> {
+		const id = await sendMessage<M>(message)
+		return new Promise<R>((resolve, reject) => {
+			state.requests.set(id, {resolve, reject})
+		})
+	}
+}

@@ -1,7 +1,18 @@
 
-import {Events, Methods, HostOptions, Api} from "../interfaces.js"
+import {NuclearApi} from "./example-common.js"
+import {Events, Methods, Api} from "../interfaces.js"
+import {createCrosscallHost} from "../host/create-crosscall-host.js"
 
-class ReactorEvents implements Events<ReactorEvents> {
+export class ReactorMethods implements Methods<ReactorMethods> {
+	async generatePower(a: number, b: number) {
+		return a + b
+	}
+	async radioactiveMeltdown() {
+		throw new Error("meltdown!")
+	}
+}
+
+export class ReactorEvents implements Events<ReactorEvents> {
 	alarm = {
 		listen() {},
 		unlisten() {}
@@ -12,29 +23,19 @@ class ReactorEvents implements Events<ReactorEvents> {
 	}
 }
 
-class ReactorMethods implements Methods<ReactorMethods> {
-	async generatePower() {}
-	async radioactiveMeltdown() {}
-}
-
-interface NuclearApi extends Api<NuclearApi> {
-	reactor: {
-		events: ReactorEvents
-		methods: ReactorMethods
-	}
-}
-
-const options: HostOptions<NuclearApi> = {
-	debug: true,
-	namespace: "crosscall",
-	exposures: {
-		reactor: {
-			events: new ReactorEvents(),
-			methods: new ReactorMethods(),
-			cors: {
-				allowed: /^https?:\/\/localhost:8\d{3}$/i,
-				forbidden: null
+export async function exampleHost() {
+	createCrosscallHost<NuclearApi>({
+		debug: true,
+		namespace: "crosscall-example",
+		exposures: {
+			reactor: {
+				events: new ReactorEvents(),
+				methods: new ReactorMethods(),
+				cors: {
+					allowed: /^https?:\/\/localhost:8\d{3}$/i,
+					forbidden: null
+				}
 			}
 		}
-	}
+	})
 }

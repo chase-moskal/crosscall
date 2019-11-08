@@ -2,6 +2,7 @@
 import {DisabledLogger} from "renraku/dist/toolbox/logging.js"
 
 import {
+	Api,
 	Signal,
 	HostState,
 	HostOptions,
@@ -14,13 +15,13 @@ import {prepareSendMessage} from "./prepare-send-message.js"
 import {prepareMessageHandlers} from "./prepare-message-handlers.js"
 import {prepareMessageListener} from "./prepare-message-listener.js"
 
-export function createCrosscallHost({
+export function createCrosscallHost<A extends Api<A> = Api>({
 	namespace,
 	exposures,
 	debug = false,
 	shims: moreShims = {},
 	logger = new DisabledLogger,
-}: HostOptions) {
+}: HostOptions<A>) {
 
 	//
 	// preparing stuff

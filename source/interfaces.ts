@@ -1,13 +1,14 @@
 
 import {Logger} from "renraku/dist/toolbox/logging.js"
 import {Methods, Shape} from "renraku/dist/interfaces.js"
+import {ListenerOrganizer} from "./client/listener-organizer.js"
 
 //
 // COMMON TYPES
 // ============
 //
 
-export {Methods}
+export {Methods, Shape, Logger}
 
 export type Events<X extends {} = {}> = {
 	[P in keyof X]: EventMediator
@@ -27,9 +28,9 @@ export interface Exposure<
 	cors: CorsPermissions
 }
 
-export interface Topic {
-	events: Events
-	methods: Methods
+export interface Topic<M extends {} = any, E extends {} = any> {
+	events: E
+	methods: M
 }
 
 export type Api<X extends {} = {}> = {
@@ -113,10 +114,17 @@ export interface ClientOptions<A extends Api<A> = {}> {
 }
 
 export interface ClientState {
+	isReady: boolean
 	messageId: number
 	iframe: HTMLIFrameElement
 	requests: Map<Id, PendingRequest>
+	listenerOrganizer: ListenerOrganizer
 }
+
+export type RequestFunc<
+	M extends Message = Message,
+	R extends ResponseMessage = ResponseMessage
+> = (message: M) => Promise<R>
 
 //
 // COMMON INTERNALS
