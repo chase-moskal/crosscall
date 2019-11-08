@@ -1,7 +1,7 @@
 
 # crosscall
 
-*postmessage rpc across origins*
+*postmessage rpc and events across origins*
 
 **`npm install crosscall`**
 
@@ -12,150 +12,13 @@
   the host can expose async functionality to the client  
   crosscall mediates the client and host via postmessage  
 
-- **use-case example: cross-origin token storage**  
-  a crosscall host could provide access to its `localStorage`  
-  this allows for secure cross-domain token storage (federated identity)  
-
 - [**live demo**](https://chasemoskal.com/crosscall/)
 
+- crosscall shares a similar interface with [renraku](https://github.com/chase-moskal/renraku)
 
-## usage by example
+- i'm currently using crosscall a lot in my [authoritarian](https://github.com/chase-moskal/authoritarian-client) project
 
-- **host page, at "`http://localhost:8080/host.html`"**
+## see example code until i write a real readme
 
-  ```js
-  // create crosscall host on page, which will be in popup or iframe
-  const host = new crosscall.Host({
-    namespace: "crosscall-example",
-
-    callee: {
-
-      // async functions exposed for client to use
-      topics: {
-        exampleTopic: {
-          async exampleMethodAlpha(x) { return x },
-          async exampleMethodBravo(x) { return x + 1 }
-        }
-      },
-
-      // events exposed for client to use
-      events: {
-        exampleEvent: {
-          listen(listener) {
-            window.addEventListener("explosion", listener)
-          },
-          unlisten(listener) {
-            window.removeEventListener("explosion", listener)
-          }
-        }
-      }
-    },
-
-    // each client origin gets its own access permissions
-    permissions: [{
-      origin: /^http:\/\/localhost:8080$/,
-      allowedTopics: {
-        exampleTopic: ["exampleMethodAlpha", "exampleMethodBravo"]
-      },
-      allowedEvents: ["exampleEvent"]
-    }]
-  })
-  ```
-
-- **client page, at "`http://localhost:8080/index.html`"**
-
-  ```js
-  // create iframe, pointing to the host page
-  const {postMessage} = crosscall.createIframe({
-    url: "http://localhost:8080/host.html"
-  })
-
-  // create crosscall client, which communicates to the host via postMessage
-  const client = new crosscall.Client({
-    namespace: "crosscall-example",
-    hostOrigin: "http://localhost:8080",
-    postMessage
-  })
-
-  // wait for the callable object to become available
-  const {topics, events} = await client.callable
-
-  // seamlessly utilize the host's functionality
-  const result1 = await topics.exampleTopic.exampleMethodAlpha(4) //> 4
-  const result2 = await topics.exampleTopic.exampleMethodBravo(4) //> 5
-
-  // listen for an event
-  events.exampleEvent.listen(() => console.log("exampleEvent"))
-
-  ```
-
-## noteworthy design points
-
-- **seamless calling experience for the client**
-  ```js
-  // garbage — we don't need these awful-to-maintain string literals
-  const result = await rpc.request("exampleTopic", "exampleMethodAlpha", [5])
-
-  // seamless crosscall experience — feels just like the real thing
-  const result = await topics.exampleTopic.exampleMethodAlpha(5)
-  ```
-
-- **simple permissions system**
-  - specify allowed access for each origin, on a per-method basis
-  - both client and host will reject messages from untrusted origins
-
-  ```typescript
-  // each client origin gets its own callee access permission
-  permissions: [{
-    origin: /^http:\/\/localhost:8080$/,
-    allowedTopics: {
-      exampleTopic: ["exampleMethodAlpha", "exampleMethodBravo"]
-    },
-    allowedEvents: []
-  }]
-  ```
-
-- **communicate with host as iframe or as popup**
-  ```js
-  // create iframe
-  const {postMessage, iframe} = crosscall.createIframe({
-    url: "http://localhost:8080/host.html"
-  })
-
-  // create popup
-  const {postMessage, popup} = crosscall.createPopup({
-    url: "http://localhost:8080/host.html",
-    target: "_blank",
-    features: "title=0,width=360,height=200",
-    replace: true
-  })
-
-  // then pass `postMessage` to the crosscall client constructor
-  ```
-
-## staying secure
-
-- i'm not responsible for how you use this tech
-- you've really got to use this stuff over **HTTPS**
-
-## notes for future refactors
-
-- i'd like the creation of a host to more reflect the renraku api
-
-    ```js
-    const host = new CrosscallHost({
-      namespace: "crosscall-example",
-      exposures: [{
-        allowed: /^http\:\/\/localhost\:8\d{3}$/i,
-        forbidden: null,
-        exposedTopics: {
-          exampleTopic: {}
-        },
-        exposedEvents: {}
-      }]
-    })
-    ```
-
-- probably should add `PreMessage` interface where `id` and `namespace` are required
-
-- should consider replacing postMessage usage with a custom channel, to avoid intefering with other systems using postMessage
+- [example-client.ts](source/examples/example-client.ts)
+- [example-host.ts](source/examples/example-host.ts)
