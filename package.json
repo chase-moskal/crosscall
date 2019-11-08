@@ -22,10 +22,11 @@
 	],
 	"scripts": {
 		"prepare": "run-s build test",
-		"build": "rimraf dist && mkdirp dist dist-cjs && run-p build-esm build-cjs",
+		"build": "rimraf dist && mkdirp dist dist-cjs && run-p build-esm build-cjs importmap",
 		"build-esm": "tsc",
 		"build-cjs": "tsc --module commonjs --outDir dist-cjs && run-s replace-cjs-imports",
 		"replace-cjs-imports": "replace-in-files --regex='renraku\\/dist\\/' --replacement='renraku/dist-cjs/' 'dist-cjs/**/*.js'",
+		"importmap": "importly < package.json > dist/importmap.json",
 		"start": "serve",
 		"test": "jest --verbose dist-cjs"
 	},
@@ -39,6 +40,7 @@
 	"homepage": "https://github.com/chase-moskal/crosscall#readme",
 	"devDependencies": {
 		"@types/jest": "^24.0.22",
+		"importly": "0.1.0-dev.0",
 		"jest": "^24.9.0",
 		"mkdirp": "^0.5.1",
 		"mock-local-storage": "^1.1.10",

@@ -34,7 +34,7 @@ export interface Topic<M extends {} = any, E extends {} = any> {
 }
 
 export type Api<X extends {} = {}> = {
-	[name in keyof X]: Topic
+	[P in keyof X]: Topic
 }
 
 export type ApiToExposures<A extends Api<A> = {}> = {

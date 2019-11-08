@@ -28,7 +28,7 @@ export async function exampleHost() {
 				events: new ReactorEvents(),
 				methods: new ReactorMethods(),
 				cors: {
-					allowed: /^https?:\/\/localhost:8\d{3}$/i,
+					allowed: /^.*$/i,
 					forbidden: null
 				}
 			}

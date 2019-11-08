@@ -14,48 +14,20 @@
 		</style>
 	</head>
 	<body>
-		<h1>crosscall <span class="timekeeper"></span></h1>
+		<h1>crosscall <span class="result"></span></h1>
 		<a href="https://github.com/chase-moskal/crosscall">crosscall on github</a>
 
-		<script src="node_modules/requirejs/require.js"></script>
-		<script type="module">
-			import {createIframe} from "./dist/create-iframe.js"
-			import {Client as CrosscallClient} from "./dist/client.js"
-			(async() => {
-				const {origin, pathname} = window.location
-				const dirname = pathname.substring(0, pathname.lastIndexOf("/"))
-
-				// create host iframe
-				const {postMessage} = await createIframe({
-					url: "http://localhost:9000"
-					// url: origin + dirname + "/host.html"
-				})
-
-				// create crosscall client, pass in the iframe's postmessage
-				const crosscallClient = new CrosscallClient({
-					namespace: "crosscall-example",
-					hostOrigin: origin,
-					postMessage
-				})
-
-				// wait for the callable object to become available
-				const {topics, events} = await crosscallClient.callable
-
-				// seamlessly utilize the host's async functionality
-				const result1 = await topics.testTopic.test1(4)
-				const result2 = await topics.testTopic.test2(4)
-				console.log(result1) //> 4
-				console.log(result2) //> 5
-
-				// continually update results from the host
-				const timekeeper = document.querySelectorAll(".timekeeper")
-				async function updateTime() {
-					const time = await topics.testTopic.test3()
-					for (const keeper of timekeeper) keeper.textContent = time
-				}
-				updateTime()
-				setInterval(updateTime, 40)
-			})()
+		<script type="importmap-shim" src="dist/importmap.json"></script>
+		<script type="module-shim">
+			import {exampleClient} from "./dist/examples/example-client.js"
+			async function mainClient() {
+				const success = await exampleClient(window.location.href + "host.html")
+				const report = success ? "✔" : "✘"
+				document.querySelector(".result").textContent = report
+				console.log(`${report} crosscall ${success ? "works" : "fails"}`)
+			}
+			mainClient()
 		</script>
+		<script src="https://unpkg.com/es-module-shims@0.4.6/dist/es-module-shims.js"></script>
 	</body>
 </html>

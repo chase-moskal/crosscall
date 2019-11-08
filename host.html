@@ -6,35 +6,11 @@
 	</head>
 	<body>
 		<h1>crosscall host</h1>
-
-		<script type="module">
-			import {Host as CrosscallHost} from "./dist/host.js"
-
-			const crosscallHost = new CrosscallHost({
-				namespace: "crosscall-example",
-
-				// functionality exposed for clients to call
-				callee: {
-					topics: {
-						testTopic: {
-							async test1(x) { return x },
-							async test2(x) { return x + 1 },
-							async test3() { return Date.now() }
-						}
-					},
-					events: {}
-				},
-
-				// each client origin gets its own callee access permission
-				permissions: [{
-					origin: new RegExp(window.location.origin, "i"),
-					allowedTopics: {
-						testTopic: ["test1", "test2", "test3"]
-					},
-					allowedEvents: []
-				}]
-			})
+		<script type="importmap-shim" src="dist/importmap.json"></script>
+		<script type="module-shim">
+			import {exampleHost} from "./dist/examples/example-host.js"
+			exampleHost()
 		</script>
-		<!-- <script src="https://unpkg.com/es-module-shims@0.4.5/dist/es-module-shims.js"></script> -->
+		<script src="https://unpkg.com/es-module-shims@0.4.6/dist/es-module-shims.js"></script>
 	</body>
 </html>

@@ -19,7 +19,7 @@ export function prepareMessageListener({
 	return async function messageListener({
 		origin,
 		data: message
-	}: MessageEvent) {
+	}: MessageEvent): Promise<boolean> {
 
 		const isMessageForUs = typeof message === "object"
 			&& message.namespace === namespace
@@ -42,5 +42,7 @@ export function prepareMessageListener({
 				throw error
 			}
 		}
+
+		return isMessageForUs
 	}
 }
