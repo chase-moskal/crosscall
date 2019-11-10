@@ -1,22 +1,25 @@
 
 import {
-	Id,
 	Api,
-	ClientState,
+	Client,
 	ClientShims,
 	ClientOptions,
-	Client,
-	PendingRequest,
-} from "../interfaces.js"
+} from "./interfaces.js"
 
-import {defaultShims} from "./defaults.js"
-import {makeCallable} from "./make-callable.js"
-import {ListenerOrganizer} from "./listener-organizer.js"
-import {prepareRequestFunction} from "./prepare-request-function.js"
-import {prepareMessageHandlers} from "./prepare-message-handlers.js"
-import {prepareMessageListener} from "./prepare-message-listener.js"
+import {
+	Id,
+	ClientState,
+	PendingRequest
+} from "./internals/internal-interfaces.js"
 
-export function createCrosscallClient<A extends Api<A>>({
+import {defaultShims} from "./internals/client/defaults.js"
+import {makeCallable} from "./internals/client/make-callable.js"
+import {ListenerOrganizer} from "./internals/client/listener-organizer.js"
+import {prepareRequestFunction} from "./internals/client/prepare-request-function.js"
+import {prepareMessageHandlers} from "./internals/client/prepare-message-handlers.js"
+import {prepareMessageListener} from "./internals/client/prepare-message-listener.js"
+
+export function crosscallClient<A extends Api<A>>({
 	shape,
 	namespace,
 	hostOrigin,

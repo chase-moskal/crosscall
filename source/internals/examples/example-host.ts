@@ -1,7 +1,7 @@
 
 import {NuclearApi} from "./example-common.js"
-import {Events, Methods, Api, Listener} from "../interfaces.js"
-import {createCrosscallHost} from "../host/create-crosscall-host.js"
+import {crosscallHost} from "../../crosscall-host.js"
+import {Events, Methods, Listener} from "../../interfaces.js"
 
 export class ReactorMethods implements Methods<ReactorMethods> {
 	async generatePower(a: number, b: number) {
@@ -20,7 +20,7 @@ export class ReactorEvents implements Events<ReactorEvents> {
 }
 
 export async function exampleHost() {
-	createCrosscallHost<NuclearApi>({
+	crosscallHost<NuclearApi>({
 		namespace: "crosscall-example",
 		exposures: {
 			reactor: {

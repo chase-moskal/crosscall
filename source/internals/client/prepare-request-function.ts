@@ -5,7 +5,7 @@ import {
 	ClientState,
 	RequestFunc,
 	ResponseMessage,
-} from "../interfaces.js"
+} from "../internal-interfaces.js"
 
 export function prepareRequestFunction({
 	state,

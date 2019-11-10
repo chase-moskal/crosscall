@@ -1,5 +1,5 @@
 
-import {Api, ApiShape} from "../interfaces.js"
+import {Api, ApiShape} from "../../interfaces.js"
 import {ReactorEvents, ReactorMethods} from "./example-host.js"
 
 export interface NuclearApi extends Api<NuclearApi> {

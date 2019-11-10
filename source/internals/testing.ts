@@ -1,9 +1,18 @@
 
-import {createCrosscallHost} from "./host/create-crosscall-host.js"
+import {crosscallHost} from "../crosscall-host.js"
+import {crosscallClient } from "../crosscall-client.js"
 import {NuclearApi, nuclearShape} from "./examples/example-common.js"
 import {ReactorMethods, ReactorEvents} from "./examples/example-host.js"
-import {createCrosscallClient } from "./client/create-crosscall-client.js"
-import {HostOptions, ClientOptions, Message, Client, Host, Events, Listener} from "./interfaces.js"
+
+import {Message} from "./internal-interfaces.js"
+import {
+	Host,
+	Client,
+	Events,
+	Listener,
+	HostOptions,
+	ClientOptions,
+} from "../interfaces.js"
 
 export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
 	shape: nuclearShape,
@@ -103,8 +112,8 @@ export const makeBridgedSetup = () => {
 	))
 
 	// client created first, the way iframes work
-	client = createCrosscallClient<NuclearApi>(clientOptions)
-	host = createCrosscallHost<NuclearApi>(hostOptions)
+	client = crosscallClient<NuclearApi>(clientOptions)
+	host = crosscallHost<NuclearApi>(hostOptions)
 
 	return {client, host, clientOptions, hostOptions, dispatchAlarmEvent}
 }

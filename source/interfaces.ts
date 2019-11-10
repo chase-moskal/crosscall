@@ -1,10 +1,8 @@
 
 import {Methods, Shape} from "renraku/dist/interfaces.js"
-import {ListenerOrganizer} from "./client/listener-organizer.js"
 
 //
 // COMMON TYPES
-// ============
 //
 
 export {Methods, Shape}
@@ -62,163 +60,8 @@ export interface Callable {
 	methods: Methods
 }
 
-//
-// HOST TYPES
-// ==========
-//
-
-export interface HostOptions<A extends Api<A> = Api> {
-	namespace: string
-	exposures: ApiToExposures<A>
-	shims?: Partial<HostShims>
-}
-
-export interface Host<A extends Api<A> = Api> {
-	stop(): void
-}
-
-export interface HostShims {
-	postMessage: typeof window.parent.postMessage
-	addEventListener: typeof window.addEventListener
-	removeEventListener: typeof window.removeEventListener
-}
-
-export interface HostState {
-	messageId: number
-	listenerId: number
-	listeners: Map<number, ListenerData>
-}
-
-export interface SendMessage<M extends Message = Message> {
-	(o: {origin: string; message: M}): Promise<Id>
-}
-
-//
-// CLIENT TYPES
-// ============
-//
-
-export interface ClientShims {
-	createElement: typeof document.createElement
-	appendChild: typeof document.body.appendChild
-	removeChild: typeof document.body.removeChild
-	addEventListener: typeof window.addEventListener
-	removeEventListener: typeof window.removeEventListener
-}
-
-export interface ClientOptions<A extends Api<A> = Api> {
-	shape: ApiShape<A>
-	namespace: string
-	hostOrigin: string
-	postMessage: typeof window.postMessage
-	shims?: Partial<ClientShims>
-}
-
-export interface Client<A extends Api<A> = Api> {
-	stop(): void
-	callable: Promise<A>
-}
-
-export interface ClientState {
-	isReady: boolean
-	messageId: number
-	iframe: HTMLIFrameElement
-	requests: Map<Id, PendingRequest>
-	listenerOrganizer: ListenerOrganizer
-}
-
-export type RequestFunc<
-	M extends Message = Message,
-	R extends ResponseMessage = ResponseMessage
-> = (message: M) => Promise<R>
-
-//
-// COMMON INTERNALS
-// ================
-//
-
-export interface Message {
-	id?: Id
-	signal: Signal
-	namespace?: string
-}
-
-export type Id = number
-
-export interface Associated {
-	associate: Id
-}
-
-export const enum Signal {
-	Error,
-	Wakeup,
-
-	CallRequest,
-	CallResponse,
-
-	Event,
-	EventListenRequest,
-	EventListenResponse,
-	EventUnlistenRequest,
-	EventUnlistenResponse
-}
-
-export interface ResponseMessage extends Message, Associated {}
-
-export interface ErrorMessage extends Message, Partial<Associated> {
-	signal: Signal.Error
-	error: string
-}
-
-export interface CallRequest extends Message {
-	signal: Signal.CallRequest
-	topic: string
-	func: string
-	params: any[]
-}
-
-export interface EventListenRequest extends Message {
-	signal: Signal.EventListenRequest
-	topic: string
-	eventName: string
-}
-
-export interface EventListenResponse extends ResponseMessage {
-	signal: Signal.EventListenResponse
-	listenerId: number
-}
-
-export interface EventUnlistenRequest extends Message {
-	signal: Signal.EventUnlistenRequest
-	listenerId: number
-}
-
-export interface EventUnlistenResponse extends ResponseMessage {
-	signal: Signal.EventUnlistenResponse
-}
-
-export interface EventMessage extends Message {
-	signal: Signal.Event
-	listenerId: number
-	eventPayload: any
-}
-
-export interface PendingRequest {
-	resolve: any
-	reject: any
-}
-
-export interface CallResponse<R = any> extends ResponseMessage {
-	signal: Signal.CallResponse
-	result: R
-}
-
 export interface Listener<EventPayload extends Object = any> {
 	(event: EventPayload): void
-}
-
-export interface ClientMessageHandlers {
-	[key: string]: (message: Message) => Promise<void>
 }
 
 export interface CreateIframeOptions {
@@ -241,16 +84,47 @@ export interface PopupOptions {
 	replace?: boolean
 }
 
-export interface HandleMessageParams<gMessage extends Message = Message> {
-	message: gMessage
-	origin: string
+//
+// HOST
+//
+
+export interface HostOptions<A extends Api<A> = Api> {
+	namespace: string
+	exposures: ApiToExposures<A>
+	shims?: Partial<HostShims>
 }
 
-export interface HostMessageHandlers {
-	[key: string]: (params: HandleMessageParams) => Promise<void>
+export interface Host<A extends Api<A> = Api> {
+	stop(): void
 }
 
-export interface ListenerData {
-	cleanup: () => void
-	exposure: Exposure<any, any>
+export interface HostShims {
+	postMessage: typeof window.parent.postMessage
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+}
+
+//
+// CLIENT
+//
+
+export interface ClientShims {
+	createElement: typeof document.createElement
+	appendChild: typeof document.body.appendChild
+	removeChild: typeof document.body.removeChild
+	addEventListener: typeof window.addEventListener
+	removeEventListener: typeof window.removeEventListener
+}
+
+export interface ClientOptions<A extends Api<A> = Api> {
+	shape: ApiShape<A>
+	namespace: string
+	hostOrigin: string
+	postMessage: typeof window.postMessage
+	shims?: Partial<ClientShims>
+}
+
+export interface Client<A extends Api<A> = Api> {
+	stop(): void
+	callable: Promise<A>
 }

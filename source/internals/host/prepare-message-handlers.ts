@@ -1,8 +1,6 @@
 
 import {
 	Signal,
-	Exposure,
-	Listener,
 	HostState,
 	CallRequest,
 	SendMessage,
@@ -14,7 +12,12 @@ import {
 	HandleMessageParams,
 	EventUnlistenRequest,
 	EventUnlistenResponse,
-} from "../interfaces.js"
+} from "../internal-interfaces.js"
+
+import {
+	Exposure,
+	Listener,
+} from "../../interfaces.js"
 
 import {
 	getEventMediator,

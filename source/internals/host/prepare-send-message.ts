@@ -1,5 +1,6 @@
 
-import {HostShims, HostState, Message, Id} from "../interfaces.js"
+import {HostShims} from "../../interfaces.js"
+import {HostState, Message, Id} from "../internal-interfaces.js"
 
 export function prepareSendMessage({
 	state,

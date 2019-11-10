@@ -1,5 +1,5 @@
 
-import {CreateIframeOptions} from "../interfaces.js"
+import {CreateIframeOptions} from "./interfaces.js"
 
 export async function createIframe({
 	url,

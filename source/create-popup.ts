@@ -1,5 +1,5 @@
 
-import {CreatePopupOptions} from "../interfaces.js"
+import {CreatePopupOptions} from "./interfaces.js"
 
 export function createPopup({
 	url,

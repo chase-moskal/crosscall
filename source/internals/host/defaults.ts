@@ -1,5 +1,5 @@
 
-import {HostShims} from "../interfaces.js"
+import {HostShims} from "../../interfaces.js"
 
 export const defaultShims: HostShims = {
 	postMessage: (() => {

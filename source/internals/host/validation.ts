@@ -1,5 +1,6 @@
 
-import {Exposure, EventMediator, ListenerData} from "../interfaces.js"
+import {ListenerData} from "../internal-interfaces.js"
+import {Exposure, EventMediator} from "../../interfaces.js"
 
 export function enforcePermissions({origin, exposure}: {
 	origin: string

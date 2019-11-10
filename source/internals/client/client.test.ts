@@ -1,6 +1,6 @@
 
-import {makeClientOptions, badOrigin} from "./testing.js"
-import {createCrosscallClient} from "./client/create-crosscall-client.js"
+import {makeClientOptions, badOrigin} from "../testing.js"
+import {crosscallClient} from "../../crosscall-client.js"
 
 describe("crosscall client", () => {
 
@@ -10,7 +10,7 @@ describe("crosscall client", () => {
 		shims.addEventListener = <any>((eventName: string, handler2: Function) => {
 			handler = handler2
 		})
-		createCrosscallClient({...opts, shims})
+		crosscallClient({...opts, shims})
 		expect(handler).toBeTruthy()
 		const messageWasUsed: boolean = await handler({
 			data: {},

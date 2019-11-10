@@ -3,18 +3,21 @@ import {
 	Api,
 	Shape,
 	Topic,
-	Signal,
 	ApiShape,
+	EventMediator,
+} from "../../interfaces.js"
+
+import {
+	Signal,
 	ClientState,
 	RequestFunc,
 	CallRequest,
 	CallResponse,
-	EventMediator,
 	EventListenRequest,
 	EventListenResponse,
 	EventUnlistenRequest,
 	EventUnlistenResponse,
-} from "../interfaces.js"
+} from "../internal-interfaces.js"
 
 export function makeCallable<A extends Api<A> = Api>({
 	state,

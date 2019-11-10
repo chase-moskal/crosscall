@@ -1,7 +1,7 @@
 
-import {createIframe} from "../toolbox/create-iframe.js"
+import {createIframe} from "../../create-iframe.js"
+import {crosscallClient} from "../../crosscall-client.js"
 import {NuclearApi, nuclearShape as shape} from "./example-common.js"
-import {createCrosscallClient} from "../client/create-crosscall-client.js"
 
 export async function exampleClient(url: string) {
 	const {href, origin: hostOrigin} = new URL(url)
@@ -10,7 +10,7 @@ export async function exampleClient(url: string) {
 		url: href
 	})
 
-	const client = createCrosscallClient<NuclearApi>({
+	const client = crosscallClient<NuclearApi>({
 		shape,
 		hostOrigin,
 		postMessage,

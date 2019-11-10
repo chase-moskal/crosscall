@@ -2,19 +2,22 @@
 import {
 	Api,
 	Host,
+	HostOptions,
+} from "./interfaces.js"
+
+import {
 	Signal,
 	HostState,
-	HostOptions,
 	ListenerData,
-} from "../interfaces.js"
+} from "./internals/internal-interfaces.js"
 
-import {error} from "../error.js"
-import {defaultShims} from "./defaults.js"
-import {prepareSendMessage} from "./prepare-send-message.js"
-import {prepareMessageHandlers} from "./prepare-message-handlers.js"
-import {prepareMessageListener} from "./prepare-message-listener.js"
+import {err} from "./errors.js"
+import {defaultShims} from "./internals/host/defaults.js"
+import {prepareSendMessage} from "./internals/host/prepare-send-message.js"
+import {prepareMessageHandlers} from "./internals/host/prepare-message-handlers.js"
+import {prepareMessageListener} from "./internals/host/prepare-message-listener.js"
 
-export function createCrosscallHost<A extends Api<A> = Api>({
+export function crosscallHost<A extends Api<A> = Api>({
 	namespace,
 	exposures,
 	shims: moreShims = {},
@@ -26,7 +29,7 @@ export function createCrosscallHost<A extends Api<A> = Api>({
 
 	// mixin shim defaults
 	const shims = {...defaultShims, ...moreShims}
-	if (!shims.postMessage) throw error(`crosscall host has invalid `
+	if (!shims.postMessage) throw err(`crosscall host has invalid `
 		+ `postmessage (could not find window parent or opener)`)
 
 	// establish initial values for our host state

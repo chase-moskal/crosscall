@@ -1,5 +1,5 @@
 
-import {ClientMessageHandlers} from "../interfaces.js"
+import {ClientMessageHandlers} from "../internal-interfaces.js"
 
 export function prepareMessageListener({
 	namespace,

@@ -3,7 +3,8 @@ import {
 	nap,
 	makeBridgedSetup,
 } from "./testing.js"
-import {Signal, Listener} from "./interfaces.js"
+import {Listener} from "../interfaces.js"
+import {Signal} from "./internal-interfaces.js"
 
 describe("crosscall host/client integration", () => {
 

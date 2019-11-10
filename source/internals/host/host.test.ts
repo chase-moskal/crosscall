@@ -3,9 +3,9 @@ import {
 	nap,
 	badOrigin,
 	makeHostOptions,
-} from "./testing.js"
-import {Message, Signal} from "./interfaces.js"
-import {createCrosscallHost} from "./host/create-crosscall-host.js"
+} from "../testing.js"
+import {crosscallHost} from "../../crosscall-host.js"
+import {Message, Signal} from "../internal-interfaces.js"
 
 describe("crosscall host", () => {
 	it("ignores messages with the wrong namespace", async() => {
@@ -14,7 +14,7 @@ describe("crosscall host", () => {
 		options.shims.addEventListener = <any>((eventName: string, handler2: Function) => {
 			handler = handler2
 		})
-		createCrosscallHost(options)
+		crosscallHost(options)
 		await nap()
 		const messageWasUsed: boolean = await handler({
 			data: {},
@@ -25,7 +25,7 @@ describe("crosscall host", () => {
 
 	it("sends a wakeup mesesage", async() => {
 		const options = makeHostOptions()
-		createCrosscallHost(options)
+		crosscallHost(options)
 		const [message, origin] = <[Message, string]>(
 			<any>options.shims.postMessage
 		).mock.calls[0]
@@ -36,13 +36,13 @@ describe("crosscall host", () => {
 
 	it("binds message event listener", async() => {
 		const options = makeHostOptions()
-		createCrosscallHost(options)
+		crosscallHost(options)
 		expect((<any>options.shims.addEventListener).mock.calls.length).toBe(1)
 	})
 
 	it("unbinds message event listener on deconstructor", async() => {
 		const options = makeHostOptions()
-		const host = createCrosscallHost(options)
+		const host = crosscallHost(options)
 		host.stop()
 		expect((<any>options.shims.removeEventListener).mock.calls.length).toBe(1)
 	})
