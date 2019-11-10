@@ -1,5 +1,4 @@
 
-import {DisabledLogger} from "renraku/dist/toolbox/logging.js"
 import {createCrosscallHost} from "./host/create-crosscall-host.js"
 import {NuclearApi, nuclearShape} from "./examples/example-common.js"
 import {ReactorMethods, ReactorEvents} from "./examples/example-host.js"
@@ -21,8 +20,6 @@ export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
 })
 
 export const makeHostOptions = (): HostOptions<NuclearApi> => ({
-	debug: true,
-	logger: new DisabledLogger(),
 	namespace: "crosscall-testing",
 	exposures: {
 		reactor: {

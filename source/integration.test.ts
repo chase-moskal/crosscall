@@ -39,8 +39,6 @@ describe("crosscall host/client integration", () => {
 		const {client, dispatchAlarmEvent} = makeBridgedSetup()
 		const {reactor} = await client.callable
 
-		debugger
-
 		let result: boolean = false
 		const listener: Listener = event => { result= event.alpha }
 		await reactor.events.alarm.listen(listener)

@@ -52,6 +52,6 @@
 		"typescript": "^3.7.2"
 	},
 	"dependencies": {
-		"renraku": "0.0.0-dev.16"
+		"renraku": "0.0.0-dev.17"
 	}
 }

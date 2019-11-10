@@ -1,5 +1,4 @@
 
-import {Logger} from "renraku/dist/toolbox/logging.js"
 import {Methods, Shape} from "renraku/dist/interfaces.js"
 import {ListenerOrganizer} from "./client/listener-organizer.js"
 
@@ -8,7 +7,7 @@ import {ListenerOrganizer} from "./client/listener-organizer.js"
 // ============
 //
 
-export {Methods, Shape, Logger}
+export {Methods, Shape}
 
 export type Events<X extends {} = {}> = {
 	[P in keyof X]: EventMediator
@@ -69,10 +68,8 @@ export interface Callable {
 //
 
 export interface HostOptions<A extends Api<A> = Api> {
-	debug: boolean
 	namespace: string
 	exposures: ApiToExposures<A>
-	logger?: Logger
 	shims?: Partial<HostShims>
 }
 

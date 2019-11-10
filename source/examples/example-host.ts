@@ -21,7 +21,6 @@ export class ReactorEvents implements Events<ReactorEvents> {
 
 export async function exampleHost() {
 	createCrosscallHost<NuclearApi>({
-		debug: true,
 		namespace: "crosscall-example",
 		exposures: {
 			reactor: {
