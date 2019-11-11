@@ -36,7 +36,7 @@ export function getMethodExecutor({func, params, exposure}: {
 }) {
 	const method = <Method>exposure.exposed[func]
 	if (!method) throw new Error(`unknown method "${func}"`)
-	return () => method.apply(exposure, params)
+	return () => method.apply(exposure.exposed, params)
 }
 
 export function getEventMediator({eventName, exposure}: {
