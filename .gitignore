@@ -1,5 +1,5 @@
 
-/dist*
+# /dist* # dist is tracked for deployment
 /coverage
 /node_modules
 /*.tgz
