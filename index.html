@@ -19,7 +19,7 @@
 
 		<script type="importmap-shim" src="dist/importmap.json"></script>
 		<script type="module-shim">
-			import {exampleClient} from "./dist/examples/example-client.js"
+			import {exampleClient} from "./dist/internals/examples/example-client.js"
 			async function mainClient() {
 				const success = await exampleClient(window.location.href + "host.html")
 				const report = success ? "✔" : "✘"
