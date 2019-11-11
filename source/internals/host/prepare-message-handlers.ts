@@ -34,7 +34,7 @@ export const prepareMessageHandlers = ({
 }: {
 	state: HostState
 	sendMessage: SendMessage
-	exposures: {[key: string]: Exposure<any, any>}
+	exposures: {[key: string]: Exposure}
 }): HostMessageHandlers => ({
 
 	/**

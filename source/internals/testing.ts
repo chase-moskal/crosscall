@@ -1,17 +1,17 @@
 
 import {crosscallHost} from "../crosscall-host.js"
 import {crosscallClient } from "../crosscall-client.js"
+import {ReactorTopic} from "./examples/example-host.js"
 import {NuclearApi, nuclearShape} from "./examples/example-common.js"
-import {ReactorMethods, ReactorEvents} from "./examples/example-host.js"
 
 import {Message} from "./internal-interfaces.js"
 import {
 	Host,
 	Client,
-	Events,
 	Listener,
 	HostOptions,
 	ClientOptions,
+	EventMediator,
 } from "../interfaces.js"
 
 export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
@@ -32,8 +32,7 @@ export const makeHostOptions = (): HostOptions<NuclearApi> => ({
 	namespace: "crosscall-testing",
 	exposures: {
 		reactor: {
-			methods: new ReactorMethods(),
-			events: new ReactorEvents(),
+			exposed: new ReactorTopic(),
 			cors: {
 				allowed: /^https:\/\/alpha\.egg$/i,
 				forbidden: null
@@ -54,20 +53,18 @@ export const sleep = async(ms: number) =>
 export const goodOrigin = "https://alpha.egg"
 export const badOrigin = "https://beta.bad"
 
-export function mockReactorEvents(): {
+export function mockReactorAlarm(): {
 	dispatchAlarmEvent: (event: any) => void
-	reactorEvents: Events<ReactorEvents>
+	alarm: EventMediator
 } {
 	let subs: Listener[] = []
 	return {
-		reactorEvents: {
-			alarm: {
-				listen: listener => {
-					subs.push(listener)
-				},
-				unlisten: listener => {
-					subs = subs.filter(sub => sub !== listener)
-				}
+		alarm: {
+			listen: listener => {
+				subs.push(listener)
+			},
+			unlisten: listener => {
+				subs = subs.filter(sub => sub !== listener)
 			}
 		},
 		dispatchAlarmEvent: (event: any) => {
@@ -79,8 +76,8 @@ export function mockReactorEvents(): {
 export const makeBridgedSetup = () => {
 	const hostOptions = makeHostOptions()
 	const clientOptions = makeClientOptions()
-	const {reactorEvents, dispatchAlarmEvent} = mockReactorEvents()
-	hostOptions.exposures.reactor.events = reactorEvents
+	const {alarm, dispatchAlarmEvent} = mockReactorAlarm()
+	hostOptions.exposures.reactor.exposed.alarm = alarm
 
 	let host: Host<NuclearApi>
 	let client: Client<NuclearApi>

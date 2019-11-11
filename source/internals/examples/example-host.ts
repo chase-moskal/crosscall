@@ -1,19 +1,16 @@
 
 import {NuclearApi} from "./example-common.js"
 import {crosscallHost} from "../../crosscall-host.js"
-import {Events, Methods, Listener} from "../../interfaces.js"
+import {Listener, Topic, EventMediator} from "../../interfaces.js"
 
-export class ReactorMethods implements Methods<ReactorMethods> {
+export class ReactorTopic implements Topic<ReactorTopic> {
 	async generatePower(a: number, b: number) {
 		return a + b
 	}
 	async radioactiveMeltdown() {
 		throw new Error("meltdown!")
 	}
-}
-
-export class ReactorEvents implements Events<ReactorEvents> {
-	alarm = {
+	alarm: EventMediator = {
 		listen: (listener: Listener) => {},
 		unlisten: (listener: Listener) => {}
 	}
@@ -24,8 +21,7 @@ export async function exampleHost() {
 		namespace: "crosscall-example",
 		exposures: {
 			reactor: {
-				events: new ReactorEvents(),
-				methods: new ReactorMethods(),
+				exposed: new ReactorTopic(),
 				cors: {
 					allowed: /^.*$/i,
 					forbidden: null

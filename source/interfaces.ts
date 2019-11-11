@@ -1,14 +1,16 @@
 
-import {Methods, Shape} from "renraku/dist/interfaces.js"
-
 //
-// COMMON TYPES
+// COMMON
 //
 
-export {Methods, Shape}
+export type Method = (...args: any[]) => Promise<any>
 
-export type Events<X extends {} = {}> = {
-	[P in keyof X]: EventMediator
+export type Topic<T extends {} = {}> = {
+	[P in keyof T]: Method | EventMediator
+}
+
+export type Shape<T extends {} = {}> = {
+	[P in keyof T]: T[P] extends Method ? "method" : "event"
 }
 
 export interface CorsPermissions {
@@ -16,18 +18,9 @@ export interface CorsPermissions {
 	forbidden: RegExp
 }
 
-export interface Exposure<
-	M extends Methods<M> = Methods,
-	E extends Events<E> = Events
-> {
-	methods: M
-	events: E
+export interface Exposure<E extends Topic = Topic<any>> {
+	exposed: E
 	cors: CorsPermissions
-}
-
-export interface Topic<M extends {} = any, E extends {} = any> {
-	events: E
-	methods: M
 }
 
 export type Api<X extends {} = {}> = {
@@ -35,23 +28,16 @@ export type Api<X extends {} = {}> = {
 }
 
 export type ApiToExposures<A extends Api<A> = {}> = {
-	[P in keyof A]: Exposure<A[P]["methods"], A[P]["events"]>
+	[P in keyof A]: Exposure<A[P]>
 }
 
 export type ApiShape<A extends Api<A> = Api> = {
-	[P in keyof A]: {
-		[X in keyof A[P]]: Shape<A[P][X]>
-	}
+	[P in keyof A]: Shape<A[P]>
 }
 
 export interface EventMediator<GListener extends Listener = Listener> {
 	listen(listener: GListener): void | Promise<void>
 	unlisten(listener: GListener): void | Promise<void>
-}
-
-export interface Callable {
-	events: Events
-	methods: Methods
 }
 
 export interface Listener<EventPayload extends Object = any> {

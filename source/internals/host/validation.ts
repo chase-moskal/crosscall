@@ -1,6 +1,6 @@
 
 import {ListenerData} from "../internal-interfaces.js"
-import {Exposure, EventMediator} from "../../interfaces.js"
+import {Exposure, EventMediator, Method} from "../../interfaces.js"
 
 export function enforcePermissions({origin, exposure}: {
 	origin: string
@@ -32,18 +32,18 @@ export function getExposure({topic, exposures}: {
 export function getMethodExecutor({func, params, exposure}: {
 	func: string
 	params: any[]
-	exposure: Exposure<any, any>
+	exposure: Exposure
 }) {
-	const method = exposure.methods[func]
+	const method = <Method>exposure.exposed[func]
 	if (!method) throw new Error(`unknown method "${func}"`)
-	return () => method.apply(exposure.methods, params)
+	return () => method.apply(exposure, params)
 }
 
 export function getEventMediator({eventName, exposure}: {
 	eventName: string
-	exposure: Exposure<any, any>
+	exposure: Exposure
 }) {
-	const mediator: EventMediator = exposure.events[eventName]
+	const mediator = <EventMediator>exposure.exposed[eventName]
 	if (!mediator) throw new Error(`unknown event "${eventName}"`)
 	return mediator
 }

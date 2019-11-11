@@ -6,6 +6,7 @@ import {
 	ApiShape,
 	EventMediator,
 } from "../../interfaces.js"
+import {err} from "../../errors.js"
 
 import {
 	Signal,
@@ -44,45 +45,50 @@ export function makeCallable<A extends Api<A> = Api>({
 
 	// create topics
 	for (const [topic, topicShape] of Object.entries<Shape<Topic>>(shape)) {
-		const topicObject: Topic = {methods: {}, events: {}}
+		const topicObject: Topic<any> = {}
+		for (const [key, value] of Object.entries(topicShape)) {
 
-		// create methods
-		for (const func of Object.keys(topicShape.methods)) {
-			topicObject.methods[func] = async(...params: any[]) => {
-				const response = await requestCall({
-					signal: Signal.CallRequest,
-					topic,
-					func,
-					params,
-				})
-				return response.result
-			}
-		}
-
-		// create events
-		for (const eventName of Object.keys(topicShape.events)) {
-			topicObject.events[eventName] = <EventMediator>{
-
-				async listen(listener) {
-					const {listenerId} = await requestListen({
+			// create methods
+			if (value === "method") {
+				const func = key
+				topicObject[func] = async(...params: any[]) => (
+					await requestCall({
+						signal: Signal.CallRequest,
 						topic,
-						eventName,
-						signal: Signal.EventListenRequest,
+						func,
+						params,
 					})
-					state.listenerOrganizer.add(listenerId, listener)
-				},
+				).result
+			}
 
-				async unlisten(listener) {
-					const listenerId = state.listenerOrganizer.ids.get(listener)
-					if (listenerId === undefined)
-						throw new Error(`cannot unlisten to unknown listener`)
-					await requestUnlisten({
-						listenerId,
-						signal: Signal.EventUnlistenRequest,
-					})
-					state.listenerOrganizer.remove(listenerId, listener)
+			// create events
+			else if (value === "event") {
+				const eventName = key
+				topicObject[eventName] = <EventMediator>{
+
+					async listen(listener) {
+						const {listenerId} = await requestListen({
+							topic,
+							eventName,
+							signal: Signal.EventListenRequest,
+						})
+						state.listenerOrganizer.add(listenerId, listener)
+					},
+	
+					async unlisten(listener) {
+						const listenerId = state.listenerOrganizer.ids.get(listener)
+						if (listenerId === undefined)
+							throw new Error(`cannot unlisten to unknown listener`)
+						await requestUnlisten({
+							listenerId,
+							signal: Signal.EventUnlistenRequest,
+						})
+						state.listenerOrganizer.remove(listenerId, listener)
+					}
 				}
 			}
+
+			else throw err(`unknown shape item, ${topic}.${key}: "${value}"`)
 		}
 
 		callable[topic] = topicObject

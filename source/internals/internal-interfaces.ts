@@ -16,8 +16,8 @@ export interface HostMessageHandlers {
 }
 
 export interface ListenerData {
+	exposure: Exposure
 	cleanup: () => void
-	exposure: Exposure<any, any>
 }
 
 export type RequestFunc<

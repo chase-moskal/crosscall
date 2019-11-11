@@ -21,18 +21,18 @@ describe("crosscall host/client integration", () => {
 		const nuclear = await client.callable
 		expect(nuclear).toBeDefined()
 		expect(nuclear.reactor).toBeDefined()
-		expect(nuclear.reactor.methods.generatePower).toBeDefined()
-		expect(nuclear.reactor.methods.radioactiveMeltdown).toBeDefined()
+		expect(nuclear.reactor.generatePower).toBeDefined()
+		expect(nuclear.reactor.radioactiveMeltdown).toBeDefined()
 	})
 
 	test("end to end call requests", async() => {
 		const {client} = makeBridgedSetup()
 		const {reactor} = await client.callable
 
-		const result1 = await reactor.methods.generatePower(1, 2)
+		const result1 = await reactor.generatePower(1, 2)
 		expect(result1).toBe(3)
 	
-		const result2 = await reactor.methods.generatePower(2, 3)
+		const result2 = await reactor.generatePower(2, 3)
 		expect(result2).toBe(5)
 	})
 
@@ -42,13 +42,13 @@ describe("crosscall host/client integration", () => {
 
 		let result: boolean = false
 		const listener: Listener = event => { result= event.alpha }
-		await reactor.events.alarm.listen(listener)
+		await reactor.alarm.listen(listener)
 		dispatchAlarmEvent({alpha: true})
 		await nap()
 		expect(result).toBe(true)
 
 		result = false
-		await reactor.events.alarm.unlisten(listener)
+		await reactor.alarm.unlisten(listener)
 		dispatchAlarmEvent({alpha: true})
 		await nap()
 		expect(result).toBe(false)

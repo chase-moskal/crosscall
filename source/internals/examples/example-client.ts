@@ -18,7 +18,7 @@ export async function exampleClient(url: string) {
 	})
 
 	const nuclear = await client.callable
-	const result = await nuclear.reactor.methods.generatePower(1, 2)
+	const result = await nuclear.reactor.generatePower(1, 2)
 
 	const success = result === 3
 	return success
