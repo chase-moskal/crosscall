@@ -38,12 +38,6 @@ export type ApiToExposures<A extends Api<A> = {}> = {
 	[P in keyof A]: Exposure<A[P]["methods"], A[P]["events"]>
 }
 
-export type ApiShape1<A extends Api<A> = Api> = {
-	[P in keyof A]: {
-		methods: Shape<A[P]["methods"]>
-	}
-}
-
 export type ApiShape<A extends Api<A> = Api> = {
 	[P in keyof A]: {
 		[X in keyof A[P]]: Shape<A[P][X]>
