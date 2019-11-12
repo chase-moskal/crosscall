@@ -1,19 +1,24 @@
 
 import {CreateIframeOptions} from "./interfaces.js"
 
+export class CreateIframeError extends Error {
+	readonly name = this.constructor.name
+}
+
+const err = (message: string) => new CreateIframeError(message)
+
 export async function createIframe({
 	url,
 	documentCreateElement = document.createElement.bind(document),
 	documentBodyAppendChild = document.body.appendChild.bind(document.body)
 }: CreateIframeOptions) {
-
 	try {
 		const precheck = await fetch(url)
 		if (precheck.status !== 200)
-			console.error(`createIframe failed to load "${url}"`)
+			throw err(`createIframe failed to load "${url}"`)
 	}
 	catch (error) {
-		console.error(`createIframe failed to load "${url}": ${error.message}`)
+		throw err(`createIframe failed to load "${url}": ${error.message}`)
 	}
 
 	const iframe = documentCreateElement("iframe")

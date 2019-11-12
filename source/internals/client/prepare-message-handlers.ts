@@ -28,7 +28,7 @@ export const prepareMessageHandlers = ({state, resolveReady}: {
 		passResponseToRequest(response)
 
 	return {
-		[Signal.Error]: async(message: Message): Promise<void> => console.error(message),
+		[Signal.Error]: prepPasser(),
 		[Signal.Wakeup]: async(): Promise<void> => {
 			if (!state.isReady) {
 				resolveReady()
