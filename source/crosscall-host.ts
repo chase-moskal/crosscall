@@ -11,11 +11,17 @@ import {
 	ListenerData,
 } from "./internals/internal-interfaces.js"
 
+import {
+	prepareMessageHandlers
+} from "./internals/host/prepare-message-handlers.js"
+
+import {
+	prepareMessageListener
+} from "./internals/host/prepare-message-listener.js"
+
 import {err} from "./errors.js"
 import {defaultShims} from "./internals/host/defaults.js"
 import {prepareSendMessage} from "./internals/host/prepare-send-message.js"
-import {prepareMessageHandlers} from "./internals/host/prepare-message-handlers.js"
-import {prepareMessageListener} from "./internals/host/prepare-message-listener.js"
 
 export function crosscallHost<A extends Api<A> = Api>({
 	namespace,

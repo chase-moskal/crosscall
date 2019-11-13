@@ -1,23 +1,17 @@
 
+import {verifyCors} from "renraku/dist/verify-cors.js"
+
 import {ListenerData} from "../internal-interfaces.js"
 import {Exposure, EventMediator, Method} from "../../interfaces.js"
 
 export function enforcePermissions({origin, exposure}: {
 	origin: string
 	exposure: Exposure
-}): boolean {
-	let permitted = false
-
+}) {
 	if (!exposure.cors) throw new Error(`cors permissions must be specified`)
-
-	const {allowed, forbidden} = exposure.cors
-	if (!allowed) throw new Error(`cors.allowed must be specified`)
-
-	if (allowed.test(origin)) permitted = true
-	if (forbidden && forbidden.test(origin)) permitted = false
-	if (!permitted) throw new Error(`not permitted`)
-
-	return permitted
+	if (!exposure.cors.allowed) throw new Error(`cors 'allowed' must be specified`)
+	const permitted = verifyCors({origin, cors: exposure.cors})
+	if (!permitted) throw new Error(`failed cors verification`)
 }
 
 export function getExposure({topic, exposures}: {
