@@ -20,8 +20,9 @@
 		<script type="importmap-shim" src="dist/importmap.json"></script>
 		<script type="module-shim">
 			import {exampleClient} from "./dist/internals/examples/example-client.js"
+			const url = "http://localhost:8023/host"
 			async function mainClient() {
-				const success = await exampleClient(window.location.href + "host.html")
+				const success = await exampleClient(url)
 				const report = success ? "✔" : "✘"
 				document.querySelector(".result").textContent = report
 				console.log(`${report} crosscall ${success ? "works" : "fails"}`)
