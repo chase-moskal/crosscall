@@ -1,9 +1,31 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.17",
+	"version": "0.0.6-dev.18",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
+	"type": "module",
+	"files": [
+		"dist",
+		"source"
+	],
+	"scripts": {
+		"prepare": "run-s build test",
+		"build": "rimraf dist && mkdirp dist && run-p compile importmap",
+		"compile": "tsc",
+		"importmap": "importly < package.json > dist/importmap.json",
+		"watch": "npm run compile -s -- --watch",
+		"start": "serve -l 8022 & serve --cors -l 8023",
+		"test": "cynic node --label='crosscall tests' dist/internals/tests.test.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/chase-moskal/crosscall.git"
+	},
+	"bugs": {
+		"url": "https://github.com/chase-moskal/crosscall/issues"
+	},
+	"homepage": "https://github.com/chase-moskal/crosscall#readme",
 	"keywords": [
 		"cross-origin",
 		"cross-domain",
@@ -15,44 +37,19 @@
 		"xorigin",
 		"xdomain"
 	],
-	"files": [
-		"dist",
-		"dist-cjs",
-		"source"
-	],
-	"scripts": {
-		"prepare": "run-s build test",
-		"build": "rimraf dist && mkdirp dist dist-cjs && run-p build-esm build-cjs importmap",
-		"build-esm": "tsc",
-		"build-cjs": "tsc --module commonjs --outDir dist-cjs && run-s replace-cjs-imports",
-		"replace-cjs-imports": "replace-in-files --regex='renraku\\/dist\\/' --replacement='renraku/dist-cjs/' 'dist-cjs/**/*.js'",
-		"importmap": "importly < package.json > dist/importmap.json",
-		"watch": "npm run build-esm -s -- --watch",
-		"start": "serve -l 8022 & serve --cors -l 8023",
-		"test": "jest --verbose dist-cjs"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/chase-moskal/crosscall.git"
-	},
-	"bugs": {
-		"url": "https://github.com/chase-moskal/crosscall/issues"
-	},
-	"homepage": "https://github.com/chase-moskal/crosscall#readme",
 	"devDependencies": {
-		"@types/jest": "^24.9.0",
+		"cynic": "0.1.0-dev.4",
 		"importly": "0.1.0-dev.0",
-		"jest": "^24.9.0",
-		"mkdirp": "^0.5.1",
+		"mkdirp": "^1.0.3",
 		"mock-local-storage": "^1.1.11",
 		"npm-run-all": "^4.1.5",
-		"replace-in-files-cli": "^0.3.0",
+		"replace-in-files-cli": "^0.3.1",
 		"requirejs": "^2.3.6",
-		"rimraf": "^3.0.0",
+		"rimraf": "^3.0.2",
 		"serve": "^11.3.0",
-		"typescript": "^3.7.4"
+		"typescript": "^3.8.2"
 	},
 	"dependencies": {
-		"renraku": "0.0.0-dev.19"
+		"renraku": "0.0.0-dev.21"
 	}
 }

@@ -1,10 +1,7 @@
 
 import {crosscallHost} from "../crosscall-host.js"
 import {crosscallClient } from "../crosscall-client.js"
-import {ReactorTopic} from "./examples/example-host.js"
-import {NuclearApi, nuclearShape} from "./examples/example-common.js"
 
-import {Message} from "./internal-interfaces.js"
 import {
 	Host,
 	Client,
@@ -14,17 +11,40 @@ import {
 	EventMediator,
 } from "../interfaces.js"
 
+import {Message} from "./internal-interfaces.js"
+import {ReactorTopic} from "./examples/example-host.js"
+import {NuclearApi, nuclearShape} from "./examples/example-common.js"
+
+export interface MockFunction {
+	(...args: any): any
+	calls: {
+		provided: any[]
+		returned: any
+	}[]
+}
+
+export function fn(actual = (...args: any[]): any => {}) {
+	function funny(...args: any): any {
+		funny.calls.push({
+			provided: args,
+			returned: actual(...args)
+		})
+	}
+	funny.calls = <any[]>[]
+	return funny
+}
+
 export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
 	shape: nuclearShape,
 	namespace: "crosscall-testing",
 	hostOrigin: "https://alpha.egg",
-	postMessage: jest.fn<typeof window.postMessage, any>(),
+	postMessage: <typeof window.postMessage>fn(),
 	shims: {
-		createElement: <typeof document.createElement>jest.fn(),
-		appendChild: <typeof document.appendChild>jest.fn(),
-		removeChild: <typeof document.removeChild>jest.fn(),
-		addEventListener: <typeof window.addEventListener>jest.fn(),
-		removeEventListener: <typeof window.removeEventListener>jest.fn()
+		createElement: <typeof document.createElement>fn(),
+		appendChild: <typeof document.appendChild>fn(),
+		removeChild: <typeof document.removeChild>fn(),
+		addEventListener: <typeof window.addEventListener>fn(),
+		removeEventListener: <typeof window.removeEventListener>fn(),
 	}
 })
 
@@ -40,9 +60,9 @@ export const makeHostOptions = (): HostOptions<NuclearApi> => ({
 		}
 	},
 	shims: {
-		postMessage: <typeof window.postMessage>jest.fn(),
-		addEventListener: <typeof window.addEventListener>jest.fn(),
-		removeEventListener: <typeof window.removeEventListener>jest.fn()
+		postMessage: <typeof window.postMessage>fn(),
+		addEventListener: <typeof window.addEventListener>fn(),
+		removeEventListener: <typeof window.removeEventListener>fn(),
 	}
 })
 
@@ -85,15 +105,15 @@ export const makeBridgedSetup = () => {
 	// get message senders
 	let messageHost: (o: Partial<MessageEvent>) => void
 	let messageClient: (o: Partial<MessageEvent>) => void
-	hostOptions.shims.addEventListener = jest.fn(
+	hostOptions.shims.addEventListener = fn(
 		async(eventName, func: any) => messageHost = func
 	)
-	clientOptions.shims.addEventListener = jest.fn(
+	clientOptions.shims.addEventListener = fn(
 		async(eventName, func: any) => messageClient = func
 	)
 
 	// route host output to client input
-	hostOptions.shims.postMessage = <any><typeof window.postMessage>jest.fn(
+	hostOptions.shims.postMessage = fn(
 		async(message: Message, origin: string) => {
 			await sleep(0)
 			messageClient({origin: goodOrigin, data: message})
@@ -101,12 +121,12 @@ export const makeBridgedSetup = () => {
 	)
 
 	// route client output to host input
-	clientOptions.postMessage = (<typeof window.postMessage>jest.fn(
-		<any>(async(message: Message, origin: string) => {
+	clientOptions.postMessage = fn(
+		async(message: Message, origin: string) => {
 			await sleep(0)
 			messageHost({origin: goodOrigin, data: message})
-		})
-	))
+		}
+	)
 
 	// client created first, the way iframes work
 	client = crosscallClient<NuclearApi>(clientOptions)

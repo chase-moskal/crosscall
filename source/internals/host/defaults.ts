@@ -1,7 +1,7 @@
 
 import {HostShims} from "../../interfaces.js"
 
-export const defaultShims: HostShims = {
+export const defaultShims: HostShims = typeof window === "object" ? {
 	postMessage: (() => {
 		const {parent, opener} = window
 		if (parent && parent !== window) return parent.postMessage.bind(parent)
@@ -10,4 +10,8 @@ export const defaultShims: HostShims = {
 	})(),
 	addEventListener: window.addEventListener.bind(window),
 	removeEventListener: window.removeEventListener.bind(window)
+} : {
+	postMessage: () => {},
+	addEventListener: () => {},
+	removeEventListener: () => {},
 }
