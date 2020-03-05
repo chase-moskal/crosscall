@@ -1,5 +1,5 @@
 
-import {Suite} from "cynic"
+import {Suite, FnMock, assert, expect} from "cynic"
 
 import {Listener} from "../interfaces.js"
 import {crosscallHost} from "../crosscall-host.js"
@@ -8,14 +8,11 @@ import {crosscallClient} from "../crosscall-client.js"
 import {
 	nap,
 	badOrigin,
-	MockFunction,
 	makeHostOptions,
 	makeBridgedSetup,
 	makeClientOptions,
 } from "./testing.js"
-import {Signal, Message} from "./internal-interfaces.js"
-
-const isDefined = (x: any) => x !== null && x !== undefined
+import {Signal} from "./internal-interfaces.js"
 
 export default <Suite>{
 
@@ -23,38 +20,30 @@ export default <Suite>{
 		"wakeup call from host is received by client": async() => {
 			const {hostOptions} = makeBridgedSetup()
 			const {postMessage: hostPostMessage} = hostOptions.shims
+			const mock: FnMock = (<any>hostPostMessage).mock
 			await nap()
-			return (
-				((<MockFunction>hostPostMessage).calls.length > 0)
-				 &&
-				((<MockFunction & any>hostPostMessage)
-					.calls[0].provided[0].signal === Signal.Wakeup)
-			)
+			assert(mock.calls.length > 0, `host postMessage must be called`)
+			assert(mock.calls[0].args[0].signal === Signal.Wakeup,
+				`first call to host postMessage must be wakeup signal`)
+			return true
 		},
 		"callable resolves": async() => {
 			const {client} = makeBridgedSetup()
 			const nuclear = await client.callable
-			return (
-				isDefined(nuclear)
-				 &&
-				isDefined(nuclear.reactor)
-				 &&
-				isDefined(nuclear.reactor.generatePower)
-				 &&
-				isDefined(nuclear.reactor.radioactiveMeltdown)
-			)
+			expect(nuclear).defined()
+			expect(nuclear.reactor).defined()
+			expect(nuclear.reactor.generatePower).defined()
+			expect(nuclear.reactor.radioactiveMeltdown).defined()
+			return true
 		},
 		"end to end call requests": async() => {
 			const {client} = makeBridgedSetup()
 			const {reactor} = await client.callable
-
 			const result1 = await reactor.generatePower(1, 2)
 			const result2 = await reactor.generatePower(2, 3)
-
 			return (
-				(result1 === 3)
-				 &&
-				(result2 === 5)
+				expect(result1).equals(3) &&
+				expect(result2).equals(5)
 			)
 		},
 		"client can listen and unlisten to host events": async() => {
@@ -75,9 +64,8 @@ export default <Suite>{
 			await nap()
 
 			return (
-				(result1 === true)
-				 &&
-				(result2 === false)
+				expect(result1).ok() &&
+				expect(result2).not.ok()
 			)
 		}
 	},
@@ -95,38 +83,32 @@ export default <Suite>{
 				data: {},
 				origin: badOrigin,
 			})
-			return (
-				(messageWasUsed === false)
-			)
+			return expect(messageWasUsed).not.ok()
 		},
 		"sends a wakeup mesesage": async() => {
 			const options = makeHostOptions()
 			crosscallHost(options)
-			const [message, origin] = <[Message, string]>(
-				<any>options.shims.postMessage
-			).calls[0].provided
+			const mock: FnMock = (<any>options.shims.postMessage).mock
+			assert(mock.calls.length > 0, `host postMessage wasn't even called`)
+			const [message, origin] = mock.calls[0].args
 			return (
-				(message.id === 0)
-				 &&
-				(message.signal === Signal.Wakeup)
-				 &&
-				(origin === "*")
+				expect(message.id).equals(0) &&
+				expect(message.signal).equals(Signal.Wakeup) &&
+				expect(origin).equals("*")
 			)
 		},
 		"binds message event listener": async() => {
 			const options = makeHostOptions()
 			crosscallHost(options)
-			return (
-				(<any>options.shims.addEventListener).calls.length === 1
-			)
+			const mock = (<any>options.shims.addEventListener).mock
+			return expect(mock.calls.length).equals(1)
 		},
 		"unbinds message event listener on deconstructor": async() => {
 			const options = makeHostOptions()
 			const host = crosscallHost(options)
 			host.stop()
-			return (
-				(<any>options.shims.removeEventListener).calls.length === 1
-			)
+			const mock: FnMock = (<any>options.shims.removeEventListener).mock
+			return expect(mock.calls.length).equals(1)
 		},
 	},
 
@@ -145,9 +127,8 @@ export default <Suite>{
 				origin: badOrigin,
 			})
 			return (
-				(!!handler)
-				 &&
-				(messageWasUsed === false)
+				expect(handler).ok() &&
+				expect(messageWasUsed).not.ok()
 			)
 		},
 	},

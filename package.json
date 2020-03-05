@@ -1,6 +1,6 @@
 {
 	"name": "crosscall",
-	"version": "0.0.6-dev.18",
+	"version": "0.0.6-dev.19",
 	"description": "cross-origin postmessage rpc",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
 	"license": "ISC",
@@ -38,7 +38,7 @@
 		"xdomain"
 	],
 	"devDependencies": {
-		"cynic": "0.1.0-dev.4",
+		"cynic": "0.1.0-dev.7",
 		"importly": "0.1.0-dev.0",
 		"mkdirp": "^1.0.3",
 		"mock-local-storage": "^1.1.11",
@@ -47,9 +47,9 @@
 		"requirejs": "^2.3.6",
 		"rimraf": "^3.0.2",
 		"serve": "^11.3.0",
-		"typescript": "^3.8.2"
+		"typescript": "^3.8.3"
 	},
 	"dependencies": {
-		"renraku": "0.0.0-dev.21"
+		"renraku": "0.0.0-dev.24"
 	}
 }

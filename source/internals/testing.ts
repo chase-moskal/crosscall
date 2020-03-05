@@ -1,4 +1,6 @@
 
+import {fn} from "cynic"
+
 import {crosscallHost} from "../crosscall-host.js"
 import {crosscallClient } from "../crosscall-client.js"
 
@@ -14,25 +16,6 @@ import {
 import {Message} from "./internal-interfaces.js"
 import {ReactorTopic} from "./examples/example-host.js"
 import {NuclearApi, nuclearShape} from "./examples/example-common.js"
-
-export interface MockFunction {
-	(...args: any): any
-	calls: {
-		provided: any[]
-		returned: any
-	}[]
-}
-
-export function fn(actual = (...args: any[]): any => {}) {
-	function funny(...args: any): any {
-		funny.calls.push({
-			provided: args,
-			returned: actual(...args)
-		})
-	}
-	funny.calls = <any[]>[]
-	return funny
-}
 
 export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
 	shape: nuclearShape,
@@ -60,9 +43,9 @@ export const makeHostOptions = (): HostOptions<NuclearApi> => ({
 		}
 	},
 	shims: {
-		postMessage: <typeof window.postMessage>fn(),
-		addEventListener: <typeof window.addEventListener>fn(),
-		removeEventListener: <typeof window.removeEventListener>fn(),
+		postMessage: fn<typeof window.postMessage>(),
+		addEventListener: fn<typeof window.addEventListener>(),
+		removeEventListener: fn<typeof window.removeEventListener>(),
 	}
 })
 
@@ -106,10 +89,10 @@ export const makeBridgedSetup = () => {
 	let messageHost: (o: Partial<MessageEvent>) => void
 	let messageClient: (o: Partial<MessageEvent>) => void
 	hostOptions.shims.addEventListener = fn(
-		async(eventName, func: any) => messageHost = func
+		async(eventName: string, func: any) => messageHost = func
 	)
 	clientOptions.shims.addEventListener = fn(
-		async(eventName, func: any) => messageClient = func
+		async(eventName: string, func: any) => messageClient = func
 	)
 
 	// route host output to client input
