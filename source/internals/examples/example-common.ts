@@ -2,7 +2,7 @@
 import {ReactorTopic} from "./example-host.js"
 import {Api, ApiShape} from "../../interfaces.js"
 
-export interface NuclearApi extends Api<NuclearApi> {
+export interface NuclearApi extends Api {
 	reactor: ReactorTopic
 }
 
