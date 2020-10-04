@@ -1,5 +1,5 @@
 
-import {ClientShims, PopupOptions} from "../../interfaces.js"
+import {ClientShims, PopupOptions} from "../../types.js"
 
 export const defaultShims: ClientShims = typeof window === "object" ? {
 	createElement: document.createElement.bind(document),

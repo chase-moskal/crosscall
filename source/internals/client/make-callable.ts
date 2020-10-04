@@ -5,7 +5,7 @@ import {
 	Topic,
 	ApiShape,
 	EventMediator,
-} from "../../interfaces.js"
+} from "../../types.js"
 import {err} from "../../errors.js"
 
 import {
@@ -18,7 +18,7 @@ import {
 	EventListenResponse,
 	EventUnlistenRequest,
 	EventUnlistenResponse,
-} from "../internal-interfaces.js"
+} from "../internal-types.js"
 
 export function makeCallable<A extends Api<A> = Api>({
 	state,

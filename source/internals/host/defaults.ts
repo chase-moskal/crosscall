@@ -1,5 +1,5 @@
 
-import {HostShims} from "../../interfaces.js"
+import {HostShims} from "../../types.js"
 
 export const defaultShims: HostShims = typeof window === "object" ? {
 	postMessage: (() => {

@@ -1,5 +1,5 @@
 
-import {Listener} from "../../interfaces.js"
+import {Listener} from "../../types.js"
 
 export class ListenerOrganizer {
 	readonly ids = new Map<Listener, number>()

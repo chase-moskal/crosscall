@@ -3,13 +3,13 @@ import {
 	Api,
 	Host,
 	HostOptions,
-} from "./interfaces.js"
+} from "./types.js"
 
 import {
 	Signal,
 	HostState,
 	ListenerData,
-} from "./internals/internal-interfaces.js"
+} from "./internals/internal-types.js"
 
 import {
 	prepareMessageHandlers

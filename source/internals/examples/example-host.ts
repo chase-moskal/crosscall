@@ -1,7 +1,7 @@
 
 import {NuclearApi} from "./example-common.js"
 import {crosscallHost} from "../../crosscall-host.js"
-import {Listener, Topic, EventMediator} from "../../interfaces.js"
+import {Listener, Topic, EventMediator} from "../../types.js"
 
 export class ReactorTopic implements Topic<ReactorTopic> {
 	async generatePower(a: number, b: number) {

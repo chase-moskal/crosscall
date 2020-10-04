@@ -1,5 +1,5 @@
 
-import {CreateIframeOptions} from "./interfaces.js"
+import {CreateIframeOptions} from "./types.js"
 
 export class CreateIframeError extends Error {
 	readonly name = this.constructor.name

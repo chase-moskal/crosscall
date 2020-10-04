@@ -11,9 +11,9 @@ import {
 	HostOptions,
 	ClientOptions,
 	EventMediator,
-} from "../interfaces.js"
+} from "../types.js"
 
-import {Message} from "./internal-interfaces.js"
+import {Message} from "./internal-types.js"
 import {ReactorTopic} from "./examples/example-host.js"
 import {NuclearApi, nuclearShape} from "./examples/example-common.js"
 

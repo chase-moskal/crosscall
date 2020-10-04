@@ -1,5 +1,5 @@
 
-import {Exposure} from "../interfaces.js"
+import {Exposure} from "../types.js"
 import {ListenerOrganizer} from "./client/listener-organizer.js"
 
 //

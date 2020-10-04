@@ -1,7 +1,7 @@
 
 import {Suite, FnMock, assert, expect} from "cynic"
 
-import {Listener} from "../interfaces.js"
+import {Listener} from "../types.js"
 import {crosscallHost} from "../crosscall-host.js"
 import {crosscallClient} from "../crosscall-client.js"
 
@@ -12,7 +12,7 @@ import {
 	makeBridgedSetup,
 	makeClientOptions,
 } from "./testing.js"
-import {Signal} from "./internal-interfaces.js"
+import {Signal} from "./internal-types.js"
 
 export default <Suite>{
 

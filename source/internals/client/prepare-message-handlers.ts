@@ -7,7 +7,7 @@ import {
 	ErrorMessage,
 	ResponseMessage,
 	ClientMessageHandlers,
-} from "../internal-interfaces.js"
+} from "../internal-types.js"
 
 export const prepareMessageHandlers = ({state, resolveReady}: {
 	state: ClientState

@@ -12,12 +12,12 @@ import {
 	HandleMessageParams,
 	EventUnlistenRequest,
 	EventUnlistenResponse,
-} from "../internal-interfaces.js"
+} from "../internal-types.js"
 
 import {
 	Exposure,
 	Listener,
-} from "../../interfaces.js"
+} from "../../types.js"
 
 import {
 	getEventMediator,

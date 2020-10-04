@@ -4,13 +4,13 @@ import {
 	Client,
 	ClientShims,
 	ClientOptions,
-} from "./interfaces.js"
+} from "./types.js"
 
 import {
 	Id,
 	ClientState,
 	PendingRequest
-} from "./internals/internal-interfaces.js"
+} from "./internals/internal-types.js"
 
 import {defaultShims} from "./internals/client/defaults.js"
 import {makeCallable} from "./internals/client/make-callable.js"

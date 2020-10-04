@@ -4,7 +4,7 @@ import {
 	SendMessage,
 	ErrorMessage,
 	HostMessageHandlers,
-} from "../internal-interfaces.js"
+} from "../internal-types.js"
 
 export function prepareMessageListener({
 	namespace,

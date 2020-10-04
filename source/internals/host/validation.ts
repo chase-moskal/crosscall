@@ -1,8 +1,8 @@
 
 import {verifyCors} from "renraku/dist/verify-cors.js"
 
-import {ListenerData} from "../internal-interfaces.js"
-import {Exposure, EventMediator, Method} from "../../interfaces.js"
+import {ListenerData} from "../internal-types.js"
+import {Exposure, EventMediator, Method} from "../../types.js"
 
 export function enforcePermissions({origin, exposure}: {
 	origin: string
