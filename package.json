@@ -38,7 +38,7 @@
 		"xdomain"
 	],
 	"devDependencies": {
-		"@types/koa": "^2.11.4",
+		"@types/koa": "^2.11.6",
 		"cynic": "0.1.0-dev.10",
 		"importly": "0.1.0-dev.0",
 		"mkdirp": "^1.0.4",
