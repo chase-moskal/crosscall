@@ -11,6 +11,7 @@ import {
 	HostOptions,
 	ClientOptions,
 	EventMediator,
+	PostMessage,
 } from "../types.js"
 
 import {Message} from "./internal-types.js"
@@ -21,7 +22,7 @@ export const makeClientOptions = (): ClientOptions<NuclearApi> => ({
 	shape: nuclearShape,
 	namespace: "crosscall-testing",
 	hostOrigin: "https://alpha.egg",
-	postMessage: <typeof window.postMessage>fn(),
+	postMessage: <PostMessage>fn(),
 	shims: {
 		createElement: <typeof document.createElement>fn(),
 		appendChild: <typeof document.appendChild>fn(),

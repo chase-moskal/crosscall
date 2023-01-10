@@ -18,5 +18,4 @@ export const defaultShims: ClientShims = typeof window === "object" ? {
 export const defaultPopupOptions: PopupOptions = {
 	target: undefined,
 	features: undefined,
-	replace: undefined
 }

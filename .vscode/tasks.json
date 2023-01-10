@@ -1,20 +1,33 @@
 {
-	"version": "0.1.0",
+	"version": "2.0.0",
 	"command": "npm",
-	"isShellCommand": true,
-	"showOutput": "always",
-	"suppressTaskName": true,
 	"tasks": [
 		{
-			"taskName": "install (production build)",
-			"args": ["install", "--silent"],
-			"problemMatcher": ["$tsc"]
+			"label": "install (production build)",
+			"type": "shell",
+			"args": [
+				"install",
+				"--silent"
+			],
+			"problemMatcher": [
+				"$tsc"
+			]
 		},
 		{
-			"taskName": "development build",
-			"isBuildCommand": true,
-			"args": ["run", "build-debug", "--silent"],
-			"problemMatcher": ["$tsc"]
+			"label": "development build",
+			"type": "shell",
+			"args": [
+				"run",
+				"build-debug",
+				"--silent"
+			],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": {
+				"_id": "build",
+				"isDefault": false
+			}
 		}
 	]
 }

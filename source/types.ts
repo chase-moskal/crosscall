@@ -54,15 +54,15 @@ export interface CreatePopupOptions {
 	url: string
 	target?: string
 	features?: string
-	replace?: boolean
 	windowOpen?: typeof window.open
 }
 
 export interface PopupOptions {
 	target?: string
 	features?: string
-	replace?: boolean
 }
+
+export type PostMessage = (message: any, targetOrigin: string, transfer?: Transferable[]) => void
 
 //
 // HOST
@@ -79,7 +79,7 @@ export interface Host<A extends Api<A> = Api> {
 }
 
 export interface HostShims {
-	postMessage: typeof window.parent.postMessage
+	postMessage: PostMessage
 	addEventListener: typeof window.addEventListener
 	removeEventListener: typeof window.removeEventListener
 }
@@ -100,7 +100,7 @@ export interface ClientOptions<A extends Api<A> = Api> {
 	shape: ApiShape<A>
 	namespace: string
 	hostOrigin: string
-	postMessage: typeof window.postMessage
+	postMessage: PostMessage
 	shims?: Partial<ClientShims>
 }
 

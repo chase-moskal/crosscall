@@ -5,11 +5,12 @@ export function createPopup({
 	url,
 	target,
 	features,
-	replace,
 	windowOpen = window.open.bind(window)
 }: CreatePopupOptions) {
 
-	const popup = windowOpen(url, target, features, replace)
+	window.open(url, target, features)
+
+	const popup = windowOpen(url, target, features)
 	const postMessage = popup.postMessage.bind(popup)
 
 	return {postMessage, popup}

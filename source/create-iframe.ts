@@ -26,11 +26,11 @@ export async function createIframe({
 	iframe.src = url
 	documentBodyAppendChild(iframe)
 
-	const postMessage: typeof iframe.contentWindow.postMessage = (
+	const postMessage = (
 		message: any,
 		targetOrigin: string,
 		transfer: Transferable[]
-	) => iframe.contentWindow.postMessage(message, targetOrigin, transfer)
+	): void => iframe.contentWindow.postMessage(message, targetOrigin, transfer)
 
 	return {postMessage, iframe}
 }

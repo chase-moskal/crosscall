@@ -1,10 +1,9 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
 		"rootDir": "source",
 		"outDir": "dist",
 		"target": "esnext",
-		"lib": ["esnext", "dom"],
+		"lib": ["es2019", "dom"],
 		"module": "esnext",
 		"moduleResolution": "node",
 		"experimentalDecorators": true,

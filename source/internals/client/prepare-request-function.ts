@@ -1,4 +1,5 @@
 
+import {PostMessage} from "../../types.js"
 import {
 	Id,
 	Message,
@@ -16,7 +17,7 @@ export function prepareRequestFunction({
 	namespace: string
 	hostOrigin: string
 	state: ClientState
-	postMessage: typeof window.postMessage
+	postMessage: PostMessage
 }): RequestFunc {
 	if (!postMessage)
 		throw new Error(`crosscall client requires postMessage`)

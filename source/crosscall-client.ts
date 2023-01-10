@@ -32,7 +32,7 @@ export function crosscallClient<A extends Api<A>>({
 	//
 
 	let resolveReady: () => void
-	const ready = new Promise(resolve => resolveReady = resolve)
+	const ready = new Promise<void>(resolve => resolveReady = resolve)
 
 	const shims: ClientShims = {...defaultShims, ...moreShims}
 	const state: ClientState = {

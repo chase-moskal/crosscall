@@ -1,6 +1,5 @@
 
-import {verifyCors} from "renraku/dist/verify-cors.js"
-
+import {verifyCors} from "./cors/verify-cors.js"
 import {ListenerData} from "../internal-types.js"
 import {Exposure, EventMediator, Method} from "../../types.js"
 
